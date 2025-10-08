@@ -1,19 +1,19 @@
 {
-  "name": "generateur_de_cartes",
+  "name": "online-cards-generator",
   "version": "0.1.0",
-  "description": "Un super generateur de cartes",
+  "description": "JavaScript card game manager. You can create cards online, based on template (SVG) and CSV file (hosted on framacalc). Cards and card sheets can be downloaded in SVG format, ready to be printed.",
   "main": "card-generator.js",
   "bin": "./build/cards-generator.min.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dionisos2/generateur_de_cartes.git"
+    "url": "git+https://github.com/Mini-pen/Online_cards_generator.git"
   },
-  "author": "",
+  "author": "Mini-pen",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/dionisos2/generateur_de_cartes/issues"
+    "url": "https://github.com/Mini-pen/Online_cards_generator/issues"
   },
-  "homepage": "https://github.com/dionisos2/generateur_de_cartes#readme",
+  "homepage": "https://github.com/Mini-pen/Online_cards_generator#readme",
   "devDependencies": {
     "chai": "^3.5.0",
     "esdoc": "^0.4.8",
