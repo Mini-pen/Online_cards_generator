@@ -1,7 +1,7 @@
 /* globals XMLHttpRequest */
 
 export function getTextFromUrl (Url) {
-  var req = new XMLHttpRequest()
+  const req = new XMLHttpRequest()
   req.open('GET', Url, false)
   req.send(null)
   if (req.status === 200) {

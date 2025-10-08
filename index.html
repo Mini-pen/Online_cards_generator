@@ -143,6 +143,112 @@
                 opacity: 0;
             }
             
+            /* Styles pour le sélecteur de langue */
+            .language-selector {
+                position: fixed;
+                top: 15px;
+                right: 20px;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+            }
+            
+            .language-selector-button {
+                background: transparent !important;
+                border: none !important;
+                padding: 0.5rem 1rem !important;
+                cursor: pointer !important;
+                border-radius: var(--radius-md) !important;
+                margin-right: 0 !important;
+                font-weight: 600 !important;
+                font-size: 0.8rem !important;
+                color: var(--text-secondary) !important;
+                transition: var(--transition) !important;
+                position: relative !important;
+                overflow: hidden !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+                min-width: 60px !important;
+                justify-content: center !important;
+                height: 40px !important;
+            }
+            
+            .language-selector-button::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+                opacity: 0;
+                transition: var(--transition);
+                z-index: -1;
+            }
+            
+            .language-selector-button:hover {
+                color: var(--primary-color) !important;
+                transform: translateY(-1px) !important;
+                box-shadow: var(--shadow-sm) !important;
+            }
+            
+            .language-selector-button:hover::before {
+                opacity: 0.1;
+            }
+            
+            .language-selector-button.active {
+                background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+                color: white !important;
+                box-shadow: var(--shadow-md) !important;
+                transform: translateY(-1px) !important;
+            }
+            
+            .language-selector-button.active::before {
+                opacity: 0;
+            }
+            
+            .language-selector-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: white;
+                border: 2px solid var(--border-color);
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                padding: 8px;
+                margin-top: 4px;
+                min-width: 160px;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-10px);
+                transition: all 0.2s ease;
+                z-index: 9999;
+            }
+            
+            .language-selector-item {
+                width: 100%;
+                background: transparent;
+                border: none;
+                padding: 10px 12px;
+                text-align: left;
+                cursor: pointer;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #1e293b;
+                transition: all 0.15s ease;
+                margin-bottom: 2px;
+            }
+            
+            .language-selector-item:hover {
+                background: #f1f5f9;
+                color: #3b82f6;
+            }
+            
             .tab-content {
                 display: none;
                 padding: 1rem;
@@ -882,13 +988,13 @@
        <!-- Système d'onglets principal en haut -->
        <div class="tabs-container" role="tablist" aria-label="Navigation principale" style="margin-bottom: 1rem;">
            <div class="tabs-header">
-               <button class="tab-button active" data-tab="project" role="tab" aria-selected="true" aria-controls="project-tab" id="tab-project" aria-label="Onglet Projet">📁 Projet</button>
-               <button class="tab-button" data-tab="models" role="tab" aria-selected="false" aria-controls="models-tab" id="tab-models" aria-label="Onglet Modèles de cartes">🎨 Modèles</button>
-               <button class="tab-button" data-tab="images" role="tab" aria-selected="false" aria-controls="images-tab" id="tab-images" aria-label="Onglet Images sources">📷 Images sources</button>
-               <button class="tab-button" data-tab="texts" role="tab" aria-selected="false" aria-controls="texts-tab" id="tab-texts" aria-label="Onglet Textes sources">📝 Textes sources</button>
-               <button class="tab-button" data-tab="lists" role="tab" aria-selected="false" aria-controls="lists-tab" id="tab-lists" aria-label="Onglet Listes">📋 Listes</button>
-               <button class="tab-button" data-tab="generation" role="tab" aria-selected="false" aria-controls="generation-tab" id="tab-generation" aria-label="Onglet Génération">⚡ Génération</button>
-               <button class="tab-button" data-tab="sheet" role="tab" aria-selected="false" aria-controls="sheet-tab" id="tab-sheet" aria-label="Onglet Planche de cartes">📄 Planche</button>
+               <button class="tab-button active" data-tab="project" role="tab" aria-selected="true" aria-controls="project-tab" id="tab-project" data-i18n="nav.project" data-i18n-title="nav.project">📁 Projet</button>
+               <button class="tab-button" data-tab="models" role="tab" aria-selected="false" aria-controls="models-tab" id="tab-models" data-i18n="nav.models" data-i18n-title="nav.models">🎨 Modèles</button>
+               <button class="tab-button" data-tab="images" role="tab" aria-selected="false" aria-controls="images-tab" id="tab-images" data-i18n="nav.images" data-i18n-title="nav.images">📷 Images sources</button>
+               <button class="tab-button" data-tab="texts" role="tab" aria-selected="false" aria-controls="texts-tab" id="tab-texts" data-i18n="nav.texts" data-i18n-title="nav.texts">📝 Textes sources</button>
+               <button class="tab-button" data-tab="lists" role="tab" aria-selected="false" aria-controls="lists-tab" id="tab-lists" data-i18n="nav.lists" data-i18n-title="nav.lists">📋 Listes</button>
+               <button class="tab-button" data-tab="generation" role="tab" aria-selected="false" aria-controls="generation-tab" id="tab-generation" data-i18n="nav.generation" data-i18n-title="nav.generation">⚡ Génération</button>
+               <button class="tab-button" data-tab="sheet" role="tab" aria-selected="false" aria-controls="sheet-tab" id="tab-sheet" data-i18n="nav.sheet" data-i18n-title="nav.sheet">📄 Planche</button>
            </div>
        </div>
 
@@ -898,46 +1004,46 @@
                 <div class="tab-content-container">
                     <!-- Onglet Projet -->
                     <div id="project-tab" class="tab-content active" role="tabpanel" aria-labelledby="tab-project" aria-hidden="false">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Gestion du Projet</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="project.title">Gestion du Projet</h3>
                         
                         <!-- Section Projet -->
                         <div class="project-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                                <h4 style="margin: 0; color: var(--primary-color); font-size: 1rem; font-weight: 700;">📁 Projet actuel</h4>
+                                <h4 style="margin: 0; color: var(--primary-color); font-size: 1rem; font-weight: 700;" data-i18n="project.current">📁 Projet actuel</h4>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <span id="projectNameDisplay" style="font-weight: 600; color: var(--text-secondary); font-size: 0.875rem;">Aucun projet ouvert</span>
+                                    <span id="projectNameDisplay" style="font-weight: 600; color: var(--text-secondary); font-size: 0.875rem;" data-i18n="project.none">Aucun projet ouvert</span>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                                <button id="saveProjectButton" type="button" title="Sauvegarder le projet complet" class="tooltip" data-tooltip="Sauvegarder le projet complet" aria-label="Sauvegarder le projet complet">💾 Sauvegarder</button>
-                                <button id="loadProjectButton" type="button" title="Charger un projet" class="tooltip" data-tooltip="Charger un projet existant" aria-label="Charger un projet existant">📂 Charger</button>
-                                <button id="closeProjectButton" type="button" title="Fermer le projet actuel" class="tooltip" data-tooltip="Fermer le projet actuel" aria-label="Fermer le projet actuel" style="background: var(--error-color); color: white;">🗑️ Fermer</button>
+                                <button id="saveProjectButton" type="button" class="tooltip" data-i18n="project.save" data-i18n-tooltip="project.save" aria-label="Sauvegarder le projet complet">💾 Sauvegarder</button>
+                                <button id="loadProjectButton" type="button" class="tooltip" data-i18n="project.load" data-i18n-tooltip="project.load" aria-label="Charger un projet existant">📂 Charger</button>
+                                <button id="closeProjectButton" type="button" class="tooltip" data-i18n="project.close" data-i18n-tooltip="project.close" aria-label="Fermer le projet actuel" style="background: var(--error-color); color: white;">🗑️ Fermer</button>
                                 <input id="projectFileInput" type="file" accept=".cgg" style="display: none;" />
                             </div>
                         </div>
 
                         <!-- Détails du Projet (intégrés depuis la popup) -->
                         <div class="config-section">
-                            <h4 style="margin: 0 0 1rem 0; color: var(--text-primary); font-size: 1rem; font-weight: 600;">📋 Détails du Projet</h4>
+                            <h4 style="margin: 0 0 1rem 0; color: var(--text-primary); font-size: 1rem; font-weight: 600;" data-i18n="project.details">📋 Détails du Projet</h4>
                             
                             <div style="margin-bottom: 1rem;">
-                                <label for="projectInfoName" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">Nom du projet :</label>
+                                <label for="projectInfoName" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);" data-i18n="project.name">Nom du projet :</label>
                                 <input id="projectInfoName" type="text" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-size: 0.875rem;" />
                             </div>
                             
                             <div style="margin-bottom: 1rem;">
-                                <label for="projectInfoVersion" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">Version :</label>
+                                <label for="projectInfoVersion" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);" data-i18n="project.version">Version :</label>
                                 <input id="projectInfoVersion" type="text" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; font-size: 0.875rem;" />
                             </div>
                             
                             <div style="margin-bottom: 1rem;">
-                                <label for="projectInfoDescription" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">Description :</label>
+                                <label for="projectInfoDescription" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);" data-i18n="project.description">Description :</label>
                                 <textarea id="projectInfoDescription" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; resize: vertical; font-size: 0.875rem;"></textarea>
                             </div>
                             
                             <div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: var(--radius-md); font-size: 0.875rem; color: var(--text-secondary); border: 1px solid var(--border-color);">
-                                <div style="margin-bottom: 0.5rem;"><strong>Créé le :</strong> <span id="projectInfoCreated">-</span></div>
-                                <div><strong>Dernière modification :</strong> <span id="projectInfoModified">-</span></div>
+                                <div style="margin-bottom: 0.5rem;"><strong data-i18n="project.created">Créé le :</strong> <span id="projectInfoCreated">-</span></div>
+                                <div><strong data-i18n="project.modified">Dernière modification :</strong> <span id="projectInfoModified">-</span></div>
                             </div>
                             
                         </div>
@@ -947,34 +1053,34 @@
                     
                     <!-- Onglet Modèles -->
                     <div id="models-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-models" aria-hidden="true">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Gestion des Modèles SVG</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="models.title">Gestion des Modèles SVG</h3>
                         
                         <!-- Zone de saisie du nom du modèle -->
                         <div style="margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <label for="modelNameInput">Nom du modèle :</label>
-                            <input type="text" id="modelNameInput" placeholder="Entrez un nom pour le modèle" style="margin-bottom: 0.75rem;" />
-                            <button id="saveModelButton" type="button">AJOUTER LE MODÈLE</button>
+                            <label for="modelNameInput" data-i18n="models.name">Nom du modèle :</label>
+                            <input type="text" id="modelNameInput" data-i18n="models.namePlaceholder" placeholder="Entrez un nom pour le modèle" style="margin-bottom: 0.75rem;" />
+                            <button id="saveModelButton" type="button" data-i18n="models.add">AJOUTER LE MODÈLE</button>
                         </div>
                         
                         <!-- Liste des modèles sauvegardés -->
                         <div style="margin-bottom: 1rem;">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Modèles sauvegardés :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="models.saved">Modèles sauvegardés :</h4>
                             <div id="modelsList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.75rem; background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;">Aucun modèle sauvegardé</p>
+                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="models.none">Aucun modèle sauvegardé</p>
                             </div>
                         </div>
                         
                         <!-- Zone d'édition SVG -->
                         <div style="padding: 1rem; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <label for="svgTextBox">Code SVG (plusieurs lignes) :</label>
+                            <label for="svgTextBox" data-i18n="models.code">Code SVG (plusieurs lignes) :</label>
                             <textarea id="svgTextBox" rows="4" style="font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace; font-size: 0.8rem; margin-bottom: 0.75rem;" readonly="false"></textarea>
                             
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                            <button id="validateSVGButton" type="button">CHARGER DEPUIS SVG LE CODE</button>
+                            <button id="validateSVGButton" type="button" data-i18n="models.loadCode">CHARGER DEPUIS SVG LE CODE</button>
                                 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                    <span style="color: var(--text-secondary); font-size: 0.8rem;">Ou sélectionnez un fichier SVG local :</span>
+                                    <span style="color: var(--text-secondary); font-size: 0.8rem;" data-i18n="models.selectFile">Ou sélectionnez un fichier SVG local :</span>
                                     <input type="file" id="svgFileInput" accept=".svg" style="width: auto; flex: 0 0 auto;" />
-                            <button id="loadSVGButton" type="button">CHARGER SVG DEPUIS LE FICHIER</button>
+                            <button id="loadSVGButton" type="button" data-i18n="models.loadFile">CHARGER SVG DEPUIS LE FICHIER</button>
                                 </div>
                             </div>
                         </div>
@@ -982,111 +1088,111 @@
                     
                     <!-- Onglet Images sources -->
                     <div id="images-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-images" aria-hidden="true">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Images Sources</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="images.title">Images Sources</h3>
                         
                         <!-- Zone d'upload d'images -->
                         <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Uploader une image :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="images.upload">Uploader une image :</h4>
                             <input type="file" id="imageFileInput" accept="image/*" style="margin-bottom: 0.75rem;" />
                             <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
                                 <div style="flex: 1; min-width: 200px;">
-                                    <label for="imageNameInput">Nom de l'image :</label>
-                                    <input type="text" id="imageNameInput" placeholder="Entrez un nom pour l'image" />
+                                    <label for="imageNameInput" data-i18n="images.name">Nom de l'image :</label>
+                                    <input type="text" id="imageNameInput" data-i18n="images.namePlaceholder" placeholder="Entrez un nom pour l'image" />
                                 </div>
-                            <button id="uploadImageButton" type="button">UPLOADER L'IMAGE</button>
+                            <button id="uploadImageButton" type="button" data-i18n="images.uploadButton">UPLOADER L'IMAGE</button>
                             </div>
                         </div>
                         
                         <!-- Liste des images uploadées -->
                         <div>
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Images uploadées :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="images.uploaded">Images uploadées :</h4>
                             <div id="imagesList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.75rem; background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;">Aucune image uploadée</p>
+                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="images.none">Aucune image uploadée</p>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Onglet Textes sources -->
                     <div id="texts-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-texts" aria-hidden="true">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Textes Sources</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="texts.title">Textes Sources</h3>
                         
                         <!-- Zone d'upload de textes -->
                         <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Uploader un fichier texte :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="texts.upload">Uploader un fichier texte :</h4>
                             <input type="file" id="textFileInput" accept=".txt" style="margin-bottom: 0.75rem;" />
                             <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
                                 <div style="flex: 1; min-width: 200px;">
-                                    <label for="textNameInput">Nom du texte :</label>
-                                    <input type="text" id="textNameInput" placeholder="Entrez un nom pour le texte" />
+                                    <label for="textNameInput" data-i18n="texts.name">Nom du texte :</label>
+                                    <input type="text" id="textNameInput" data-i18n="texts.namePlaceholder" placeholder="Entrez un nom pour le texte" />
                                 </div>
-                                <button id="uploadTextButton" type="button">UPLOADER LE TEXTE</button>
+                                <button id="uploadTextButton" type="button" data-i18n="texts.uploadButton">UPLOADER LE TEXTE</button>
                             </div>
                         </div>
                         
                         <!-- Liste des textes uploadés -->
                         <div>
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Textes uploadés :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="texts.uploaded">Textes uploadés :</h4>
                             <div id="textsList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.75rem; background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;">Aucun texte uploadé</p>
+                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="texts.none">Aucun texte uploadé</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Onglet Listes -->
                     <div id="lists-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-lists" aria-hidden="true">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Gestion des Listes</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="lists.title">Gestion des Listes</h3>
                         
                         <!-- Configuration Framacalc -->
                         <div class="config-section" style="margin-bottom: 1rem;">
-                            <h4 style="margin: 0 0 0.75rem 0; color: var(--text-primary); font-size: 1rem; font-weight: 600;">Configuration Framacalc</h4>
+                            <h4 style="margin: 0 0 0.75rem 0; color: var(--text-primary); font-size: 1rem; font-weight: 600;" data-i18n="lists.framacalc">Configuration Framacalc</h4>
                             <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                <input id="framacalcUrlTextBox" type="text" placeholder="URL de votre Framacalc..." style="flex: 1; min-width: 200px;" />
-                                <button id="validateCalcButton" type="button">Charger</button>
-                                <button id="reloadDataButton" type="button" title="Recharger les données">🔄</button>
+                                <input id="framacalcUrlTextBox" type="text" data-i18n="lists.urlPlaceholder" placeholder="URL de votre Framacalc..." style="flex: 1; min-width: 200px;" />
+                                <button id="validateCalcButton" type="button" data-i18n="lists.load">Charger</button>
+                                <button id="reloadDataButton" type="button" data-i18n="lists.reload" title="Recharger les données">🔄</button>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Onglet Génération -->
                     <div id="generation-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-generation" aria-hidden="true">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Génération de Cartes</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="generation.title">Génération de Cartes</h3>
                         
                         <!-- Zone de génération -->
                         <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Générer une carte :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="generation.generate">Générer une carte :</h4>
                             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end;">
                                 <div style="flex: 1; min-width: 200px;">
-                                    <label for="modelSelector">Modèle à utiliser :</label>
+                                    <label for="modelSelector" data-i18n="generation.model">Modèle à utiliser :</label>
                                     <select id="modelSelector">
-                                    <option value="">Sélectionner un modèle</option>
+                                    <option value="" data-i18n="generation.selectModel">Sélectionner un modèle</option>
                                 </select>
                                 </div>
                                 <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
                                     <div>
-                                        <label for="cardLineInput">Numéro de ligne :</label>
+                                        <label for="cardLineInput" data-i18n="generation.lineNumber">Numéro de ligne :</label>
                                         <input id="cardLineInput" type="number" min="1" value="1" style="width: 100px;" />
                                     </div>
-                                <button id="generateCardButton" type="button">GÉNÉRER LA CARTE</button>
+                                <button id="generateCardButton" type="button" data-i18n="generation.generateButton">GÉNÉRER LA CARTE</button>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Liste des cartes générées -->
                         <div>
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Cartes générées :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="generation.generated">Cartes générées :</h4>
                             <div id="generatedCardsList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.75rem; background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;">Aucune carte générée</p>
+                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="generation.none">Aucune carte générée</p>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Onglet Planche de cartes -->
                     <div id="sheet-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-sheet" aria-hidden="true">
-                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Planche de Cartes</h3>
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="sheet.title">Planche de Cartes</h3>
                         
                         <!-- Grille 3x3 des sélecteurs -->
                         <div style="margin-bottom: 1rem;">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Sélection des cartes :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="sheet.selection">Sélection des cartes :</h4>
                             <div id="sheetSelectors" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
                                 <!-- Les 9 sélecteurs seront générés dynamiquement -->
                             </div>
@@ -1096,18 +1202,18 @@
                         <div style="margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
                             <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
                                 <div style="flex: 1; min-width: 200px;">
-                                    <label for="sheetNameInput">Nom de la planche :</label>
-                                    <input type="text" id="sheetNameInput" placeholder="Entrez un nom pour la planche" />
+                                    <label for="sheetNameInput" data-i18n="sheet.name">Nom de la planche :</label>
+                                    <input type="text" id="sheetNameInput" data-i18n="sheet.namePlaceholder" placeholder="Entrez un nom pour la planche" />
                                 </div>
-                            <button id="saveSheetButton" type="button">SAUVEGARDER LA PLANCHE</button>
+                            <button id="saveSheetButton" type="button" data-i18n="sheet.save">SAUVEGARDER LA PLANCHE</button>
                             </div>
                         </div>
                         
                         <!-- Liste des planches sauvegardées -->
                         <div>
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Planches sauvegardées :</h4>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="sheet.saved">Planches sauvegardées :</h4>
                             <div id="sheetsList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.75rem; background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;">Aucune planche sauvegardée</p>
+                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="sheet.none">Aucune planche sauvegardée</p>
                             </div>
                         </div>
                     </div>
@@ -1126,10 +1232,10 @@
                        <span id="svgTitleText" style="color: var(--text-primary);">Modèle : Aucun</span>
                        <!-- Interface de zoom -->
                        <div id="zoomControls" style="display: flex; gap: 0.5rem; align-items: center;" role="group" aria-label="Contrôles de zoom">
-                           <button id="zoomOut" title="Dézoomer" aria-label="Dézoomer" class="tooltip" data-tooltip="Dézoomer (Ctrl + Molette)">−</button>
-                           <span id="zoomLevel" aria-live="polite" aria-label="Niveau de zoom actuel">100%</span>
-                           <button id="zoomIn" title="Zoomer" aria-label="Zoomer" class="tooltip" data-tooltip="Zoomer (Ctrl + Molette)">+</button>
-                           <button id="zoomReset" title="Réinitialiser le zoom" aria-label="Réinitialiser le zoom" class="tooltip" data-tooltip="Réinitialiser le zoom">⌂</button>
+                           <button id="zoomOut" class="tooltip" data-i18n-tooltip="zoom.out" aria-label="Dézoomer">−</button>
+                           <span id="zoomLevel" aria-live="polite" data-i18n="zoom.level" aria-label="Niveau de zoom actuel">100%</span>
+                           <button id="zoomIn" class="tooltip" data-i18n-tooltip="zoom.in" aria-label="Zoomer">+</button>
+                           <button id="zoomReset" class="tooltip" data-i18n-tooltip="zoom.reset" aria-label="Réinitialiser le zoom">⌂</button>
                        </div>
                    </div>
                     

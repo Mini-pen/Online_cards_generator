@@ -1,3 +1,4 @@
+/* global XMLHttpRequest, DOMParser */
 import SvgInterface from './svg-interface.js'
 
 /**

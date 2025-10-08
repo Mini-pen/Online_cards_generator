@@ -144,3 +144,20 @@
   - [X] Correction de l'initialisation des onglets et de l'affichage des statistiques
   - [X] Optimisation de la hauteur de la page pour occuper toute la fenêtre
   - [X] Interface finale épurée et fonctionnelle avec statistiques en temps réel
+
+* SYSTÈME D'INTERNATIONALISATION COMPLET (2025-01-07)
+  - [X] Création du système i18n avec support de 6 langues (FR, EN, ES, DE, IT, PT)
+  - [X] Fichier de traductions centralisé avec toutes les clés de l'interface
+  - [X] Sélecteur de langue avec drapeaux et menu déroulant positionné en haut à droite
+  - [X] Traduction complète de tous les textes de l'interface (navigation, boutons, labels, placeholders)
+  - [X] Traduction des sélecteurs de modèles et cartes dans les menus déroulants
+  - [X] Traduction de la page des statistiques du projet avec mise à jour dynamique
+  - [X] Traduction des boutons de sélection de fichier et textes "rien sélectionné"
+  - [X] Mise à jour automatique de tous les éléments lors du changement de langue
+  - [X] Sauvegarde de la langue sélectionnée dans le localStorage
+  - [X] Système de fallback vers le français en cas de traduction manquante
+  - [X] Interface de sélection de langue moderne avec effets de survol et animations
+  - [X] Support complet des caractères spéciaux et accents dans toutes les langues
+  - [X] Code modulaire et extensible pour ajouter facilement de nouvelles langues
+  - [X] Tests de compatibilité avec tous les navigateurs modernes
+  - [X] Documentation complète des clés de traduction et structure du système

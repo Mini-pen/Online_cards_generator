@@ -1,4 +1,5 @@
 /* globals describe, it */
+import './svg.cspec.js'
 import Carte from '../src/carte.js'
 import Svg from '../src/svg.js'
 import SvgInterface from '../src/svg-interface.js'
@@ -9,34 +10,32 @@ const expect = chai.expect
 const spy = sinon.spy
 // chai.use(sinonChai)
 
-import './svg.cspec.js'
-
 /** @test {Carte} */
 describe('Carte', function () {
   /** @test {Carte#constructor} */
   describe('#constructor()', function () {
-    var columnsHeaders = ['name', 'cost']
-    var csvLine = ['test', '10']
+    const columnsHeaders = ['name', 'cost']
+    const csvLine = ['test', '10']
     it('Should create a card', function () {
-      var svg = new Svg()
+      const svg = new Svg()
       spy(svg, 'clone')
-      var carte = new Carte(columnsHeaders, csvLine, svg)
-      expect(carte.caractDict['name']).to.equal('test')
-      expect(carte.caractDict['cost']).to.equal('10')
+      const carte = new Carte(columnsHeaders, csvLine, svg)
+      expect(carte.caractDict.name).to.equal('test')
+      expect(carte.caractDict.cost).to.equal('10')
       expect(svg.clone).to.have.been.calledOnce
     })
     it('Should throw a TypeError when the third parameter doesn\'t implement SvgInterface', function () {
-      var createCarte = function () { new Carte(columnsHeaders, csvLine, {}) } // eslint-disable-line no-new
+      const createCarte = function () { new Carte(columnsHeaders, csvLine, {}) } // eslint-disable-line no-new
       expect(createCarte).throws(TypeError, 'svgTemplate should implement SvgInterface')
     })
   })
   describe('#createSvg()', function () {
-    var columnsHeaders = ['name', 'cost']
-    var csvLine = ['test', '10']
+    const columnsHeaders = ['name', 'cost']
+    const csvLine = ['test', '10']
     it('Should inject the caracts in the correct place in the svg', function () {
-      var svg = new Svg()
+      const svg = new Svg()
       svg.load('./templates/test.svg')
-      var carte = new Carte(columnsHeaders, csvLine, svg)
+      const carte = new Carte(columnsHeaders, csvLine, svg)
       carte.createSvg()
       expect(carte).to.have.property('svg')
       expect(carte.svg).to.be.an.instanceOf(SvgInterface)

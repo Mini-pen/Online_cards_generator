@@ -11,22 +11,20 @@ function desactivate (domElement) {
   domElement.height = '400px'  // Augmenté de 250px à 400px
 }
 
-function activateCalc (frameCalc, frameSvg) {
-  activate(frameCalc)
-  desactivate(frameSvg)
-}
+// Fonctions désactivées - layout fixe
+// function activateCalc (frameCalc, frameSvg) {
+//   activate(frameCalc)
+//   desactivate(frameSvg)
+// }
 
-function activateSvg (frameCalc, frameSvg) {
-  activate(frameSvg)
-  desactivate(frameCalc)
-}
+// function activateSvg (frameCalc, frameSvg) {
+//   activate(frameSvg)
+//   desactivate(frameCalc)
+// }
 
 export default function setFrames () {
-  var frameCalc
-  var contentDisplay
-
-  frameCalc = document.getElementById('calcPage')
-  contentDisplay = document.getElementById('contentDisplay')
+  const frameCalc = document.getElementById('calcPage')
+  const contentDisplay = document.getElementById('contentDisplay')
 
   // Comportement de repli désactivé - les éléments gardent leur taille fixe
   // frameCalc.addEventListener('mouseover', function () { activateCalc(frameCalc, frameSvg) })

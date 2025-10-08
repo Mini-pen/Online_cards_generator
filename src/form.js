@@ -1,53 +1,55 @@
-/* global alert */
+/* global alert, localStorage, confirm, indexedDB */
 console.log('=== CHARGEMENT DE form.js ===')
 
 import setFrames from './interface.js'
 import Svg from './svg.js'
 import Carte from './carte.js'
+import i18n from './i18n/i18n.js'
+import LanguageSelector from './i18n/language-selector.js'
 
-var sampleSVG1
-var sampleSVG2
-var framacalcUrlTextBox
-var svgTextBox
-var calcUrl
-var CsvUrl
-var svgFileInput
-var currentSVGContent
+let sampleSVG1
+let sampleSVG2
+let framacalcUrlTextBox
+let svgTextBox
+let calcUrl
+let CsvUrl
+let svgFileInput
+let currentSVGContent
 
 // Variables pour la gestion des modèles
-var modelNameInput
-var saveModelButton
-var modelsList
-var savedModels = {} // Stockage des modèles en mémoire
+let modelNameInput
+let saveModelButton
+let modelsList
+let savedModels = {} // Stockage des modèles en mémoire
 
 // Variables pour la génération de cartes
-var cardLineInput
-var generateCardButton
-var generatedCardsList
-var modelSelector
-var generatedCards = {} // Stockage des cartes générées en mémoire
-var csvData = null // Données CSV chargées
-var csvHeaders = [] // En-têtes des colonnes CSV
-var cardCounter = 0 // Compteur pour les cartes générées
+let cardLineInput
+let generateCardButton
+let generatedCardsList
+let modelSelector
+let generatedCards = {} // Stockage des cartes générées en mémoire
+let csvData = null // Données CSV chargées
+let csvHeaders = [] // En-têtes des colonnes CSV
+let cardCounter = 0 // Compteur pour les cartes générées
 
 // Variables pour la gestion de projet
-var currentProjectName = null
-var projectCreationDate = null
-var projectLastModified = null
-var projectVersion = "1.0"
-var projectDescription = "Projet de génération de cartes"
+let currentProjectName = null
+let projectCreationDate = null
+let projectLastModified = null
+let projectVersion = "1.0"
+let projectDescription = "Projet de génération de cartes"
 
 // Variables pour la planche de cartes
-var sheetGrid
-var sheetSelectors
-var sheetNameInput
-var saveSheetButton
-var sheetsList
-var savedSheets = {} // Stockage des planches sauvegardées
-var currentSheet = new Array(9).fill(null) // Planche actuelle (9 cartes)
+let sheetGrid
+let sheetSelectors
+let sheetNameInput
+let saveSheetButton
+let sheetsList
+let savedSheets = {} // Stockage des planches sauvegardées
+let currentSheet = new Array(9).fill(null) // Planche actuelle (9 cartes)
 
 // Template SVG pour la planche 3x3
-var sheetTemplate = `
+const sheetTemplate = `
 <svg width="300" height="450" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 300 450">
   <defs>
     <style>
@@ -290,6 +292,24 @@ export function main () {
   sampleSVG1 = '<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><!-- Created with SVG-edit - http://svg-edit.googlecode.com/ --><g><title>Layer 1</title><rect id="svg_1" height="3" width="0" y="77" x="169" stroke-width="5" stroke="#000000" fill="#FF0000"/><rect id="svg_2" height="289" width="200" y="78" x="168" stroke-width="5" stroke="#000000" fill="#FF0000"/><text xml:space="preserve" text-anchor="middle" font-family="serif" font-size="24" id="svg_3" y="110" x="266" stroke-width="0" stroke="#000000" fill="#000000">Titre carte</text></g></svg>'
 
   sampleSVG2 = '<svg width="640" height="480" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><g><title>Layer 1</title><rect stroke-width="5" stroke="#000000" fill="#FF0000" id="svg_1" height="35" width="51" y="35" x="32"/><ellipse ry="15" rx="24" stroke-width="5" stroke="#000000" fill="#0000ff" id="svg_2" cy="60" cx="66"/></g></svg>'
+
+  // Initialiser l'internationalisation
+  i18n.init()
+  
+  // Initialiser le sélecteur de langue
+  const languageSelector = new LanguageSelector()
+  
+  // Écouter les changements de langue pour mettre à jour les sélecteurs et statistiques
+  document.addEventListener('languageChanged', () => {
+    updateModelSelector()
+    updateSheetSelectors()
+    updateFileInputs()
+    // Recharger les statistiques si on est sur l'onglet projet
+    const activeTab = document.querySelector('.tab-button.active')
+    if (activeTab && activeTab.id === 'tab-project') {
+      loadProjectStats()
+    }
+  })
 
   setFrames()
   initForm()
@@ -536,53 +556,53 @@ function loadProjectStats() {
   const statsHTML = `
     <div style="padding: 1rem; background: var(--bg-primary); color: var(--text-primary); font-family: inherit; height: 100%; overflow-y: auto;">
       <div style="max-width: 800px; margin: 0 auto;">
-        <h2 style="color: var(--primary-color); font-size: 1.25rem; margin-bottom: 1rem; text-align: center;">📊 Statistiques du Projet</h2>
+        <h2 style="color: var(--primary-color); font-size: 1.25rem; margin-bottom: 1rem; text-align: center;">${i18n.t('stats.title')}</h2>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
           <div style="padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.25rem;">${modelsCount}</div>
-            <div style="color: var(--text-secondary); font-size: 0.8rem;">Modèles</div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">${i18n.t('stats.models')}</div>
           </div>
           
           <div style="padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.25rem;">${imagesCount}</div>
-            <div style="color: var(--text-secondary); font-size: 0.8rem;">Images</div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">${i18n.t('stats.images')}</div>
           </div>
           
           <div style="padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.25rem;">${textsCount}</div>
-            <div style="color: var(--text-secondary); font-size: 0.8rem;">Textes</div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">${i18n.t('stats.texts')}</div>
           </div>
           
           <div style="padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.25rem;">${cardsCount}</div>
-            <div style="color: var(--text-secondary); font-size: 0.8rem;">Cartes</div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">${i18n.t('stats.cards')}</div>
           </div>
           
           <div style="padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.25rem;">${sheetsCount}</div>
-            <div style="color: var(--text-secondary); font-size: 0.8rem;">Planches</div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem;">${i18n.t('stats.sheets')}</div>
           </div>
         </div>
         
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem;">
-          <h3 style="color: var(--text-primary); font-size: 1rem; margin-bottom: 0.75rem;">Informations du projet</h3>
+          <h3 style="color: var(--text-primary); font-size: 1rem; margin-bottom: 0.75rem;">${i18n.t('stats.projectInfo')}</h3>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.8rem;">
             <div>
-              <strong>Nom :</strong><br>
-              <span style="color: var(--text-secondary);">${currentProjectName || 'Aucun projet'}</span>
+              <strong>${i18n.t('stats.name')}</strong><br>
+              <span style="color: var(--text-secondary);">${currentProjectName || i18n.t('stats.noProject')}</span>
             </div>
             <div>
-              <strong>Version :</strong><br>
+              <strong>${i18n.t('stats.version')}</strong><br>
               <span style="color: var(--text-secondary);">${projectVersion || '1.0.0'}</span>
             </div>
             <div>
-              <strong>Créé le :</strong><br>
-              <span style="color: var(--text-secondary);">${projectCreationDate ? new Date(projectCreationDate).toLocaleDateString('fr-FR') : 'Non défini'}</span>
+              <strong>${i18n.t('stats.created')}</strong><br>
+              <span style="color: var(--text-secondary);">${projectCreationDate ? new Date(projectCreationDate).toLocaleDateString('fr-FR') : i18n.t('stats.undefined')}</span>
             </div>
             <div>
-              <strong>Dernière modification :</strong><br>
-              <span style="color: var(--text-secondary);">${projectLastModified ? new Date(projectLastModified).toLocaleDateString('fr-FR') : 'Non défini'}</span>
+              <strong>${i18n.t('stats.modified')}</strong><br>
+              <span style="color: var(--text-secondary);">${projectLastModified ? new Date(projectLastModified).toLocaleDateString('fr-FR') : i18n.t('stats.undefined')}</span>
             </div>
           </div>
         </div>
@@ -764,6 +784,9 @@ function saveModel() {
   // Mettre à jour le sélecteur de modèles dans l'onglet génération
   updateModelSelector()
   
+  // Mettre à jour les inputs de fichier
+  updateFileInputs()
+  
   // Vider le champ nom
   modelNameInput.value = ''
   
@@ -857,7 +880,7 @@ function updateModelSelector() {
   if (!modelSelector) return
   
   // Vider le sélecteur
-  modelSelector.innerHTML = '<option value="">Sélectionner un modèle</option>'
+  modelSelector.innerHTML = `<option value="">${i18n.t('generation.selectModel')}</option>`
   
   // Ajouter les modèles disponibles
   Object.keys(savedModels).forEach(modelName => {
@@ -1558,7 +1581,7 @@ function initSheetGrid() {
     const selectDiv = document.createElement('div')
     selectDiv.innerHTML = `
       <select class="sheet-selector" id="sheet-selector-${i}" onchange="updateSheetCard(${i})">
-        <option value="">Sélectionner une carte</option>
+        <option value="">${i18n.t('generation.selectCard')}</option>
       </select>
     `
     sheetSelectors.appendChild(selectDiv)
@@ -1588,6 +1611,39 @@ function updateSheetSelectors() {
       })
     }
   }
+}
+
+function updateFileInputs() {
+  // Mettre à jour les inputs de type file
+  const fileInputs = [
+    { id: 'svgFileInput', key: 'file.selectSVG' },
+    { id: 'imageFileInput', key: 'file.selectImage' },
+    { id: 'textFileInput', key: 'file.selectText' },
+    { id: 'projectFileInput', key: 'file.selectFile' }
+  ]
+  
+  fileInputs.forEach(input => {
+    const element = document.getElementById(input.id)
+    if (element) {
+      // Créer un nouvel input avec les traductions
+      const newInput = element.cloneNode(true)
+      newInput.value = '' // Vider la sélection
+      
+      // Remplacer l'ancien input
+      element.parentNode.replaceChild(newInput, element)
+      
+      // Ajouter les événements si nécessaire
+      if (input.id === 'svgFileInput') {
+        newInput.addEventListener('change', handleSVGFileSelect)
+      } else if (input.id === 'imageFileInput') {
+        newInput.addEventListener('change', handleImageFileSelect)
+      } else if (input.id === 'textFileInput') {
+        newInput.addEventListener('change', handleTextFileSelect)
+      } else if (input.id === 'projectFileInput') {
+        newInput.addEventListener('change', handleProjectFileSelect)
+      }
+    }
+  })
 }
 
 function updateSheetCard(index) {
@@ -3693,9 +3749,5 @@ window.loadProject = loadProject
 window.closeProject = closeProject
 
 // Initialiser l'application quand le DOM est chargé
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', main)
-} else {
-  main()
-}
+// (déjà géré par cards-generator.js, pas besoin de l'appeler ici)
 
