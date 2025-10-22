@@ -25,12 +25,17 @@ let savedModels = {} // Stockage des modèles en mémoire
 // Variables pour la génération de cartes
 let cardLineInput
 let generateCardButton
+let generateAllLinesButton // Nouveau bouton pour générer toutes les lignes
 let generatedCardsList
 let modelSelector
 let generatedCards = {} // Stockage des cartes générées en mémoire
 let csvData = null // Données CSV chargées
 let csvHeaders = [] // En-têtes des colonnes CSV
 let cardCounter = 0 // Compteur pour les cartes générées
+
+// Variables pour la génération en masse
+let bulkGenerationChoice = null // Choix automatique pour les doublons en masse
+let bulkGenerationCount = 0 // Compteur de cartes générées en masse
 
 // Variables pour la gestion de projet
 let currentProjectName = null
@@ -42,11 +47,24 @@ let projectDescription = "Projet de génération de cartes"
 // Variables pour la planche de cartes
 let sheetGrid
 let sheetSelectors
+let cardSelectionGrid
 let sheetNameInput
 let saveSheetButton
 let sheetsList
 let savedSheets = {} // Stockage des planches sauvegardées
 let currentSheet = new Array(9).fill(null) // Planche actuelle (9 cartes)
+
+// Variables pour les modèles de layout
+let layoutOrientation
+let layoutCardWidth
+let layoutCardHeight
+let layoutCardMargin
+let layoutOuterMargin
+let layoutModelName
+let saveLayoutModelButton
+let layoutModelsList
+let layoutCalculationInfo
+let savedLayoutModels = {} // Stockage des modèles de planche en mémoire
 
 // Template SVG pour la planche 3x3
 const sheetTemplate = `
@@ -185,6 +203,7 @@ function initForm () {
   initModelsManagement()
   initCardGeneration()
   initSheetManagement()
+  initLayoutManagement()
 
   var validateCalcButton = document.getElementById('validateCalcButton')
   if (validateCalcButton) {
@@ -488,6 +507,13 @@ function initTabs() {
       
       // Changer le contenu SVG selon l'onglet
       switchTabContent(targetTab)
+      
+      // Mettre à jour l'internationalisation pour l'onglet actif
+      setTimeout(() => {
+        if (typeof i18n !== 'undefined' && i18n.updateUI) {
+          i18n.updateUI()
+        }
+      }, 50)
       
       // Ajouter un effet de focus pour l'accessibilité
       this.focus()
@@ -859,12 +885,20 @@ function initCardGeneration() {
   // Initialiser les éléments de génération de cartes
   cardLineInput = document.getElementById('cardLineInput')
   generateCardButton = document.getElementById('generateCardButton')
+  generateAllLinesButton = document.getElementById('generateAllLinesButton')
   
   if (generateCardButton) {
     generateCardButton.addEventListener('click', generateCard)
     console.log('Bouton de génération de cartes initialisé')
   } else {
     console.error('generateCardButton not found')
+  }
+  
+  if (generateAllLinesButton) {
+    generateAllLinesButton.addEventListener('click', generateAllLines)
+    console.log('Bouton de génération en masse initialisé')
+  } else {
+    console.error('generateAllLinesButton not found')
   }
   
   // Charger les cartes générées depuis localStorage
@@ -874,6 +908,481 @@ function initCardGeneration() {
   setTimeout(() => {
     updateModelSelector()
   }, 100)
+}
+
+// ===== GESTION DU NOUVEAU SYSTÈME DE NOMMAGE =====
+
+/**
+ * Génère un nom de carte selon le format : "Nom-de-la-première-case_nom-du-modèle_001"
+ * @param {Array} csvLine - La ligne CSV contenant les données
+ * @param {Array} csvHeaders - Les en-têtes des colonnes CSV
+ * @param {string} modelName - Le nom du modèle sélectionné
+ * @param {number} lineNumber - Le numéro de la ligne (pour le suffixe)
+ * @returns {string} Le nom généré pour la carte
+ */
+function generateCardName(csvLine, csvHeaders, modelName, lineNumber) {
+  // Récupérer la première case de la ligne (première colonne)
+  const firstCellValue = csvLine[0] || 'carte'
+  
+  // Nettoyer le nom de la première case (supprimer caractères spéciaux, espaces)
+  const cleanFirstCell = firstCellValue
+    .toString()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Garder seulement lettres, chiffres, espaces et tirets
+    .replace(/\s+/g, '-') // Remplacer espaces par tirets
+    .replace(/-+/g, '-') // Remplacer tirets multiples par un seul
+    .replace(/^-|-$/g, '') // Supprimer tirets en début/fin
+  
+  // Nettoyer le nom du modèle
+  const cleanModelName = modelName
+    .toString()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+  
+  // Formater le numéro de ligne avec 3 chiffres
+  const formattedLineNumber = lineNumber.toString().padStart(3, '0')
+  
+  // Construire le nom final
+  const baseName = `${cleanFirstCell}_${cleanModelName}_${formattedLineNumber}`
+  
+  return baseName
+}
+
+/**
+ * Vérifie si une carte avec ce nom existe déjà et gère les doublons
+ * @param {string} cardName - Le nom de la carte à vérifier
+ * @param {Object} cardData - Les données de la carte à sauvegarder
+ * @returns {Promise<string>} Le nom final de la carte (peut être modifié en cas de doublon)
+ */
+function handleDuplicateCard(cardName, cardData) {
+  return new Promise(function(resolve, reject) {
+    // Vérifier si une carte avec ce nom existe déjà
+    if (generatedCards[cardName]) {
+      console.log('Carte dupliquée détectée: ' + cardName)
+      
+      // Afficher la fenêtre d'avertissement
+      showDuplicateWarningDialog(cardName).then(function(choice) {
+        switch (choice) {
+          case 'keep-old':
+            // Garder l'ancienne carte, retourner le nom existant
+            resolve(cardName)
+            break
+            
+          case 'keep-new':
+            // Remplacer l'ancienne carte par la nouvelle
+            generatedCards[cardName] = cardData
+            resolve(cardName)
+            break
+            
+          case 'keep-both':
+            // Garder les deux, créer une version avec suffixe
+            var version = 1
+            var newCardName = cardName + '(v ' + version + ')'
+            
+            // Trouver un nom disponible pour la version
+            while (generatedCards[newCardName]) {
+              version++
+              newCardName = cardName + '(v ' + version + ')'
+            }
+            
+            // Sauvegarder la nouvelle carte avec le nom versionné
+            generatedCards[newCardName] = cardData
+            resolve(newCardName)
+            break
+            
+          default:
+            // Annuler la génération
+            reject(new Error('Génération annulée par l\'utilisateur'))
+        }
+      }).catch(function(error) {
+        reject(error)
+      })
+    } else {
+      // Pas de doublon, sauvegarder normalement
+      generatedCards[cardName] = cardData
+      resolve(cardName)
+    }
+  })
+}
+
+/**
+ * Affiche une boîte de dialogue d'avertissement pour les cartes dupliquées
+ * @param {string} cardName - Le nom de la carte dupliquée
+ * @returns {Promise<string>} Le choix de l'utilisateur
+ */
+function showDuplicateWarningDialog(cardName) {
+  return new Promise((resolve) => {
+    // Créer la boîte de dialogue modale
+    const modal = document.createElement('div')
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `
+    
+    const dialog = document.createElement('div')
+    dialog.style.cssText = `
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      text-align: center;
+    `
+    
+    dialog.innerHTML = `
+      <h3 style="margin-top: 0; color: #e74c3c;">⚠️ Carte dupliquée détectée</h3>
+      <p>Une carte avec le nom <strong>"${cardName}"</strong> existe déjà.</p>
+      <p>Que souhaitez-vous faire ?</p>
+      <div style="margin: 20px 0;">
+        <button id="keep-old-btn" style="margin: 5px; padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Garder l'ancienne carte
+        </button>
+        <button id="keep-new-btn" style="margin: 5px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Garder la nouvelle carte
+        </button>
+        <button id="keep-both-btn" style="margin: 5px; padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Garder les deux
+        </button>
+      </div>
+      <button id="cancel-btn" style="margin: 5px; padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Annuler
+      </button>
+    `
+    
+    modal.appendChild(dialog)
+    document.body.appendChild(modal)
+    
+    // Gérer les clics sur les boutons
+    document.getElementById('keep-old-btn').onclick = () => {
+      document.body.removeChild(modal)
+      resolve('keep-old')
+    }
+    
+    document.getElementById('keep-new-btn').onclick = () => {
+      document.body.removeChild(modal)
+      resolve('keep-new')
+    }
+    
+    document.getElementById('keep-both-btn').onclick = () => {
+      document.body.removeChild(modal)
+      resolve('keep-both')
+    }
+    
+    document.getElementById('cancel-btn').onclick = () => {
+      document.body.removeChild(modal)
+      resolve('cancel')
+    }
+    
+    // Fermer en cliquant en dehors de la boîte
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal)
+        resolve('cancel')
+      }
+    }
+  })
+}
+
+/**
+ * Génère toutes les cartes pour toutes les lignes du CSV
+ */
+function generateAllLines() {
+  console.log('=== DÉBUT GÉNÉRATION EN MASSE ===')
+  const selectedModel = modelSelector.value
+  
+  // Mettre à jour la date de dernière modification
+  updateLastModifiedDate()
+  
+  // Ajouter un état de chargement au bouton
+  setLoadingState(generateAllLinesButton, true)
+  showProgress('Préparation de la génération en masse...', 0)
+  
+  if (!csvData || !csvHeaders.length) {
+    setLoadingState(generateAllLinesButton, false)
+    hideProgress()
+    showNotification('Veuillez d\'abord charger des données CSV en cliquant sur "VALIDER CSV"', 'warning')
+    return
+  }
+  
+  if (!selectedModel) {
+    setLoadingState(generateAllLinesButton, false)
+    hideProgress()
+    showNotification('Veuillez sélectionner un modèle', 'warning')
+    return
+  }
+  
+  try {
+    // Réinitialiser le compteur et le choix automatique
+    bulkGenerationCount = 0
+    bulkGenerationChoice = null
+    
+    const totalLines = csvData.length
+    console.log('Génération en masse: ' + totalLines + ' lignes à traiter')
+    
+    // Fonction récursive pour traiter les lignes séquentiellement
+    function processLine(lineIndex) {
+      if (lineIndex >= totalLines) {
+        // Toutes les lignes traitées
+        localStorage.setItem('generatedCards', JSON.stringify(generatedCards))
+        updateGeneratedCardsList()
+        
+        setTimeout(function() {
+          hideProgress()
+          setLoadingState(generateAllLinesButton, false)
+          showNotification(bulkGenerationCount + ' cartes générées avec succès !', 'success')
+        }, 500)
+        
+        console.log('Génération en masse terminée: ' + bulkGenerationCount + ' cartes générées')
+        return
+      }
+      
+      const lineNumber = lineIndex + 1
+      const csvLine = csvData[lineIndex]
+      
+      // Mise à jour du progrès
+      const progress = Math.round((lineIndex / totalLines) * 100)
+      showProgress('Génération ligne ' + lineNumber + '/' + totalLines + '...', progress)
+      
+      try {
+        // Utiliser le modèle sélectionné
+        const svgTemplate = new Svg()
+        const svgElement = document.createElement('div')
+        svgElement.innerHTML = savedModels[selectedModel]
+        const svgNode = svgElement.querySelector('svg')
+        
+        if (!svgNode) {
+          console.warn('Ligne ' + lineNumber + ': Modèle SVG invalide')
+          processLine(lineIndex + 1)
+          return
+        }
+        
+        svgTemplate.svgElement = svgNode
+        
+        // Créer la carte
+        const carte = new Carte(csvHeaders, csvLine, svgTemplate)
+        
+        // Générer le nom de la carte
+        const baseCardName = generateCardName(csvLine, csvHeaders, selectedModel, lineNumber)
+        
+        // Préparer les données de la carte
+        const cardData = {
+          name: baseCardName,
+          svgContent: carte.getSvgText(),
+          lineNumber: lineNumber,
+          csvLine: csvLine,
+          modelName: selectedModel
+        }
+        
+        // Gérer les doublons avec choix automatique
+        handleDuplicateCardBulk(baseCardName, cardData).then(function(finalCardName) {
+          if (finalCardName) {
+            bulkGenerationCount++
+            console.log('Ligne ' + lineNumber + ': Carte "' + finalCardName + '" générée')
+          }
+          processLine(lineIndex + 1)
+        }).catch(function(error) {
+          console.error('Erreur ligne ' + lineNumber + ':', error.message)
+          processLine(lineIndex + 1)
+        })
+        
+      } catch (error) {
+        console.error('Erreur ligne ' + lineNumber + ':', error.message)
+        processLine(lineIndex + 1)
+      }
+    }
+    
+    // Commencer le traitement
+    processLine(0)
+    
+  } catch (error) {
+    console.error('Erreur lors de la génération en masse:', error)
+    setLoadingState(generateAllLinesButton, false)
+    hideProgress()
+    showNotification('Erreur lors de la génération en masse: ' + error.message, 'error')
+  }
+}
+
+/**
+ * Gère les doublons pour la génération en masse avec choix automatique
+ * @param {string} cardName - Le nom de la carte à vérifier
+ * @param {Object} cardData - Les données de la carte à sauvegarder
+ * @returns {Promise<string|null>} Le nom final de la carte ou null si annulé
+ */
+function handleDuplicateCardBulk(cardName, cardData) {
+  return new Promise(function(resolve, reject) {
+    // Vérifier si une carte avec ce nom existe déjà
+    if (generatedCards[cardName]) {
+      console.log('Carte dupliquée détectée en masse: ' + cardName)
+      
+      // Si un choix automatique a déjà été fait, l'utiliser
+      if (bulkGenerationChoice) {
+        resolve(handleBulkChoice(cardName, cardData, bulkGenerationChoice))
+        return
+      }
+      
+      // Sinon, afficher la fenêtre d'avertissement avec option "appliquer pour toutes"
+      showBulkDuplicateWarningDialog(cardName).then(function(choice) {
+        if (choice === 'cancel') {
+          resolve(null)
+          return
+        }
+        
+        // Si c'est un choix avec "appliquer pour toutes", le sauvegarder
+        if (choice.endsWith('-all')) {
+          bulkGenerationChoice = choice.replace('-all', '')
+          resolve(handleBulkChoice(cardName, cardData, bulkGenerationChoice))
+        } else {
+          resolve(handleBulkChoice(cardName, cardData, choice))
+        }
+      }).catch(function(error) {
+        reject(error)
+      })
+    } else {
+      // Pas de doublon, sauvegarder normalement
+      generatedCards[cardName] = cardData
+      resolve(cardName)
+    }
+  })
+}
+
+/**
+ * Applique le choix de gestion de doublon
+ * @param {string} cardName - Le nom de la carte
+ * @param {Object} cardData - Les données de la carte
+ * @param {string} choice - Le choix à appliquer
+ * @returns {string} Le nom final de la carte
+ */
+function handleBulkChoice(cardName, cardData, choice) {
+  switch (choice) {
+    case 'keep-old':
+      return cardName
+      
+    case 'keep-new':
+      generatedCards[cardName] = cardData
+      return cardName
+      
+    case 'keep-both':
+      let version = 1
+      let newCardName = `${cardName}(v ${version})`
+      
+      while (generatedCards[newCardName]) {
+        version++
+        newCardName = `${cardName}(v ${version})`
+      }
+      
+      generatedCards[newCardName] = cardData
+      return newCardName
+      
+    default:
+      return cardName
+  }
+}
+
+/**
+ * Affiche une boîte de dialogue d'avertissement pour les doublons en masse
+ * @param {string} cardName - Le nom de la carte dupliquée
+ * @returns {Promise<string>} Le choix de l'utilisateur
+ */
+function showBulkDuplicateWarningDialog(cardName) {
+  return new Promise((resolve) => {
+    // Créer la boîte de dialogue modale
+    const modal = document.createElement('div')
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `
+    
+    const dialog = document.createElement('div')
+    dialog.style.cssText = `
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      text-align: center;
+    `
+    
+    dialog.innerHTML = `
+      <h3 style="margin-top: 0; color: #e74c3c;">⚠️ Carte dupliquée détectée</h3>
+      <p>Une carte avec le nom <strong>"${cardName}"</strong> existe déjà.</p>
+      <p>Que souhaitez-vous faire ?</p>
+      <div style="margin: 20px 0;">
+        <button id="keep-old-btn" style="margin: 5px; padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Garder l'ancienne carte
+        </button>
+        <button id="keep-new-btn" style="margin: 5px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Garder la nouvelle carte
+        </button>
+        <button id="keep-both-btn" style="margin: 5px; padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Garder les deux
+        </button>
+      </div>
+      <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+        <p style="margin: 0 0 10px 0; font-weight: bold;">Appliquer ce choix pour toutes les générations suivantes :</p>
+        <label style="display: flex; align-items: center; justify-content: center;">
+          <input type="checkbox" id="apply-all-checkbox" style="margin-right: 8px;">
+          Oui, appliquer automatiquement ce choix
+        </label>
+      </div>
+      <button id="cancel-btn" style="margin: 5px; padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Annuler la génération
+      </button>
+    `
+    
+    modal.appendChild(dialog)
+    document.body.appendChild(modal)
+    
+    // Gérer les clics sur les boutons
+    document.getElementById('keep-old-btn').onclick = () => {
+      const applyAll = document.getElementById('apply-all-checkbox').checked
+      document.body.removeChild(modal)
+      resolve(applyAll ? 'keep-old-all' : 'keep-old')
+    }
+    
+    document.getElementById('keep-new-btn').onclick = () => {
+      const applyAll = document.getElementById('apply-all-checkbox').checked
+      document.body.removeChild(modal)
+      resolve(applyAll ? 'keep-new-all' : 'keep-new')
+    }
+    
+    document.getElementById('keep-both-btn').onclick = () => {
+      const applyAll = document.getElementById('apply-all-checkbox').checked
+      document.body.removeChild(modal)
+      resolve(applyAll ? 'keep-both-all' : 'keep-both')
+    }
+    
+    document.getElementById('cancel-btn').onclick = () => {
+      document.body.removeChild(modal)
+      resolve('cancel')
+    }
+    
+    // Fermer en cliquant en dehors de la boîte
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal)
+        resolve('cancel')
+      }
+    }
+  })
 }
 
 function updateModelSelector() {
@@ -967,39 +1476,50 @@ function generateCard() {
     // Mise à jour du progrès
     showProgress('Sauvegarde de la carte...', 75)
     
-    // Générer un nom unique pour la carte
-    cardCounter++
-    const cardName = `${selectedModel} - Ligne ${lineNumber} (${cardCounter})`
+    // Générer un nom selon le nouveau format : "Nom-de-la-première-case_nom-du-modèle_001"
+    const baseCardName = generateCardName(csvLine, csvHeaders, selectedModel, lineNumber)
     
-    // Sauvegarder la carte
-    generatedCards[cardName] = {
-      name: cardName,
+    // Préparer les données de la carte
+    const cardData = {
+      name: baseCardName,
       svgContent: carte.getSvgText(),
       lineNumber: lineNumber,
       csvLine: csvLine,
       modelName: selectedModel
     }
     
-    // Sauvegarder dans localStorage
-    localStorage.setItem('generatedCards', JSON.stringify(generatedCards))
-    
-    // Mise à jour du progrès
-    showProgress('Finalisation...', 100)
-    
-    // Mettre à jour l'affichage
-    updateGeneratedCardsList()
-    
-    // Charger la carte générée dans l'iframe
-    loadGeneratedCard(cardName)
-    
-    // Masquer le progrès et afficher le succès
-    setTimeout(() => {
-      hideProgress()
+    // Gérer les doublons avec Promise
+    handleDuplicateCard(baseCardName, cardData).then(function(finalCardName) {
+      // Sauvegarder dans localStorage
+      localStorage.setItem('generatedCards', JSON.stringify(generatedCards))
+      
+      // Mise à jour du progrès
+      showProgress('Finalisation...', 100)
+      
+      // Mettre à jour l'affichage
+      updateGeneratedCardsList()
+      
+      // Charger la carte générée dans l'iframe
+      loadGeneratedCard(finalCardName)
+      
+      // Masquer le progrès et afficher le succès
+      setTimeout(function() {
+        hideProgress()
+        setLoadingState(generateCardButton, false)
+        showNotification('Carte "' + finalCardName + '" générée avec succès !', 'success')
+      }, 500)
+      
+      console.log('Carte générée:', finalCardName, 'avec modèle:', selectedModel)
+    }).catch(function(error) {
       setLoadingState(generateCardButton, false)
-      showNotification(`Carte "${cardName}" générée avec succès !`, 'success')
-    }, 500)
-    
-    console.log('Carte générée:', cardName, 'avec modèle:', selectedModel)
+      hideProgress()
+      if (error.message === 'Génération annulée par l\'utilisateur') {
+        showNotification('Génération annulée', 'info')
+      } else {
+        showNotification('Erreur lors de la génération: ' + error.message, 'error')
+      }
+      console.error('Erreur génération carte:', error)
+    })
   } catch (error) {
     console.error('Erreur lors de la génération:', error)
     setLoadingState(generateCardButton, false)
@@ -1560,6 +2080,7 @@ function optimizeListRendering(container, items, renderItem) {
 
 function initSheetManagement() {
   sheetSelectors = document.getElementById('sheetSelectors')
+  cardSelectionGrid = document.getElementById('cardSelectionGrid')
   sheetNameInput = document.getElementById('sheetNameInput')
   saveSheetButton = document.getElementById('saveSheetButton')
   sheetsList = document.getElementById('sheetsList')
@@ -1574,17 +2095,486 @@ function initSheetManagement() {
   loadSavedSheets()
 }
 
+// ===== GESTION DES MODÈLES DE LAYOUT =====
+
+function initLayoutManagement() {
+  layoutOrientation = document.getElementById('layoutOrientation')
+  layoutCardWidth = document.getElementById('layoutCardWidth')
+  layoutCardHeight = document.getElementById('layoutCardHeight')
+  layoutCardMargin = document.getElementById('layoutCardMargin')
+  layoutOuterMargin = document.getElementById('layoutOuterMargin')
+  layoutModelName = document.getElementById('layoutModelName')
+  downloadLayoutModelsButton = document.getElementById('downloadLayoutModelsButton')
+  saveLayoutModelButton = document.getElementById('saveLayoutModelButton')
+  layoutModelsList = document.getElementById('layoutModelsList')
+  layoutCalculationInfo = document.getElementById('layoutCalculationInfo')
+  
+  console.log('Éléments de layout trouvés:', {
+    orientation: !!layoutOrientation,
+    cardWidth: !!layoutCardWidth,
+    cardHeight: !!layoutCardHeight,
+    cardMargin: !!layoutCardMargin,
+    outerMargin: !!layoutOuterMargin,
+    modelName: !!layoutModelName,
+    downloadButton: !!downloadLayoutModelsButton,
+    saveButton: !!saveLayoutModelButton,
+    modelsList: !!layoutModelsList,
+    calculationInfo: !!layoutCalculationInfo
+  })
+  
+  // Événements pour la gestion des modèles de layout
+  if (saveLayoutModelButton) {
+    saveLayoutModelButton.addEventListener('click', saveLayoutModel)
+  } else {
+    console.error('saveLayoutModelButton not found')
+  }
+  
+  if (downloadLayoutModelsButton) {
+    downloadLayoutModelsButton.addEventListener('click', downloadAllLayoutModels)
+  } else {
+    console.error('downloadLayoutModelsButton not found')
+  }
+  
+  // Événements pour le calcul automatique
+  if (layoutOrientation) {
+    layoutOrientation.addEventListener('change', calculateOptimalLayout)
+  }
+  if (layoutCardWidth) {
+    layoutCardWidth.addEventListener('input', calculateOptimalLayout)
+  }
+  if (layoutCardHeight) {
+    layoutCardHeight.addEventListener('input', calculateOptimalLayout)
+  }
+  if (layoutCardMargin) {
+    layoutCardMargin.addEventListener('input', calculateOptimalLayout)
+  }
+  if (layoutOuterMargin) {
+    layoutOuterMargin.addEventListener('input', calculateOptimalLayout)
+  }
+  
+  // Charger les modèles de layout sauvegardés
+  loadSavedLayoutModels()
+  
+  // Calcul initial
+  calculateOptimalLayout()
+  
+  // Mettre à jour l'internationalisation pour les nouveaux éléments
+  setTimeout(() => {
+    if (typeof i18n !== 'undefined' && i18n.updateUI) {
+      i18n.updateUI()
+      console.log('Interface mise à jour pour les éléments de layout')
+    }
+  }, 100)
+}
+
+/**
+ * Calcule le nombre optimal de cartes sur une page A4
+ */
+function calculateOptimalLayout() {
+  console.log('=== CALCUL LAYOUT OPTIMAL ===')
+  
+  if (!layoutOrientation || !layoutCardWidth || !layoutCardHeight || !layoutCardMargin || !layoutOuterMargin) {
+    console.log('Éléments de layout non trouvés, abandon du calcul')
+    return
+  }
+  
+  // Dimensions A4 avec marges extérieures personnalisées
+  const outerMargin = parseFloat(layoutOuterMargin.value) || 1.0
+  const a4Width = layoutOrientation.value === 'portrait' ? 21 - (2 * outerMargin) : 29.7 - (2 * outerMargin) // cm
+  const a4Height = layoutOrientation.value === 'portrait' ? 29.7 - (2 * outerMargin) : 21 - (2 * outerMargin) // cm
+  
+  const cardWidth = parseFloat(layoutCardWidth.value) || 6.3
+  const cardHeight = parseFloat(layoutCardHeight.value) || 8.8
+  const margin = parseFloat(layoutCardMargin.value)
+  
+  console.log('Paramètres:', { a4Width, a4Height, cardWidth, cardHeight, margin, outerMargin })
+  
+  // Calculer le nombre de cartes qui peuvent tenir horizontalement et verticalement
+  const cardsPerRow = Math.floor((a4Width + margin) / (cardWidth + margin))
+  const cardsPerColumn = Math.floor((a4Height + margin) / (cardHeight + margin))
+  
+  // Le nombre total de cartes est le produit
+  const totalCards = cardsPerRow * cardsPerColumn
+  
+  // Calculer les dimensions réelles utilisées
+  const usedWidth = cardsPerRow * cardWidth + (cardsPerRow - 1) * margin
+  const usedHeight = cardsPerColumn * cardHeight + (cardsPerColumn - 1) * margin
+  
+  // Calculer les marges de centrage
+  const centerMarginX = (a4Width - usedWidth) / 2
+  const centerMarginY = (a4Height - usedHeight) / 2
+  
+  console.log('Résultats:', { cardsPerRow, cardsPerColumn, totalCards, usedWidth, usedHeight, centerMarginX, centerMarginY })
+  
+  // Mettre à jour l'affichage
+  if (layoutCalculationInfo) {
+    layoutCalculationInfo.innerHTML = 
+      '<div style="margin-bottom: 0.5rem;"><strong>Grille optimale :</strong> ' + cardsPerRow + ' × ' + cardsPerColumn + ' = ' + totalCards + ' cartes</div>' +
+      '<div style="margin-bottom: 0.5rem;"><strong>Dimensions utilisées :</strong> ' + usedWidth.toFixed(1) + 'cm × ' + usedHeight.toFixed(1) + 'cm</div>' +
+      '<div style="margin-bottom: 0.5rem;"><strong>Marges de centrage :</strong> ' + centerMarginX.toFixed(1) + 'cm × ' + centerMarginY.toFixed(1) + 'cm</div>' +
+      '<div style="margin-bottom: 0.5rem;"><strong>Marge extérieure :</strong> ' + outerMargin + 'cm</div>' +
+      '<div style="margin-bottom: 0.5rem;"><strong>Efficacité :</strong> ' + ((usedWidth * usedHeight) / (a4Width * a4Height) * 100).toFixed(1) + '% de la zone utilisable</div>'
+  }
+  
+  // Générer et afficher la visualisation
+  generateLayoutVisualization(cardsPerRow, cardsPerColumn, cardWidth, cardHeight, margin, centerMarginX, centerMarginY, outerMargin)
+  
+  // Générer un nom de modèle basé sur les paramètres et pré-remplir le champ
+  const orientationText = layoutOrientation.value === 'portrait' ? 'Portrait' : 'Paysage'
+  const modelName = `${orientationText}_${cardWidth}x${cardHeight}cm_${margin}mm_${outerMargin}cm_${cardsPerRow}x${cardsPerColumn}`
+  
+  if (layoutModelName) {
+    layoutModelName.value = modelName
+  }
+}
+
+/**
+ * Génère la visualisation SVG de la grille de cartes
+ */
+function generateLayoutVisualization(cardsPerRow, cardsPerColumn, cardWidth, cardHeight, margin, centerMarginX, centerMarginY, outerMargin) {
+  const contentDisplay = document.getElementById('contentDisplay')
+  if (!contentDisplay) return
+  
+  // Dimensions A4 en pixels (1cm = 37.8px approximativement)
+  const scale = 37.8
+  const outerMarginPx = outerMargin * scale
+  const a4WidthPx = (layoutOrientation.value === 'portrait' ? 21 : 29.7) * scale
+  const a4HeightPx = (layoutOrientation.value === 'portrait' ? 29.7 : 21) * scale
+  
+  // Zone utilisable (A4 - marges extérieures)
+  const usableWidthPx = a4WidthPx - (2 * outerMarginPx)
+  const usableHeightPx = a4HeightPx - (2 * outerMarginPx)
+  
+  const cardWidthPx = cardWidth * scale
+  const cardHeightPx = cardHeight * scale
+  const marginPx = margin * scale
+  const centerMarginXPx = centerMarginX * scale
+  const centerMarginYPx = centerMarginY * scale
+  
+  // Créer le SVG
+  let svgContent = `
+    <svg width="${a4WidthPx}" height="${a4HeightPx}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${a4WidthPx} ${a4HeightPx}">
+      <defs>
+        <style>
+          .page-border { fill: none; stroke: #333; stroke-width: 2; }
+          .usable-area { fill: none; stroke: #666; stroke-width: 1; stroke-dasharray: 5,5; }
+          .card-slot { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1; }
+          .card-slot.empty { fill: #e9ecef; stroke: #adb5bd; stroke-dasharray: 3,3; }
+        </style>
+      </defs>
+      
+      <!-- Bordure de la page A4 -->
+      <rect class="page-border" x="0" y="0" width="${a4WidthPx}" height="${a4HeightPx}" />
+      
+      <!-- Zone utilisable -->
+      <rect class="usable-area" x="${outerMarginPx}" y="${outerMarginPx}" width="${usableWidthPx}" height="${usableHeightPx}" />
+      
+      <!-- Grille des cartes -->
+      <g id="cards-grid">
+  `
+  
+  // Générer les rectangles pour chaque carte
+  for (let row = 0; row < cardsPerColumn; row++) {
+    for (let col = 0; col < cardsPerRow; col++) {
+      const x = outerMarginPx + centerMarginXPx + col * (cardWidthPx + marginPx)
+      const y = outerMarginPx + centerMarginYPx + row * (cardHeightPx + marginPx)
+      
+      svgContent += `
+        <rect class="card-slot empty" x="${x}" y="${y}" width="${cardWidthPx}" height="${cardHeightPx}" rx="2" />
+      `
+    }
+  }
+  
+  svgContent += `
+      </g>
+    </svg>
+  `
+  
+  // Afficher le SVG
+  contentDisplay.innerHTML = svgContent
+  
+  // Mettre à jour le titre
+  const svgTitleText = document.getElementById('svgTitleText')
+  if (svgTitleText) {
+    svgTitleText.textContent = `Modèle de planche : ${cardsPerRow}×${cardsPerColumn} cartes - Marge ext: ${outerMargin}cm`
+  }
+}
+
+/**
+ * Sauvegarde manuellement un modèle de layout avec un nom personnalisé
+ */
+function saveLayoutModel() {
+  console.log('=== SAUVEGARDE MANUELLE MODÈLE LAYOUT ===')
+  
+  if (!layoutModelName || !layoutModelName.value.trim()) {
+    showNotification('Veuillez entrer un nom pour le modèle de planche', 'warning')
+    return
+  }
+  
+  const modelName = layoutModelName.value.trim()
+  
+  // Récupérer les paramètres actuels
+  const orientation = layoutOrientation.value
+  const cardWidth = parseFloat(layoutCardWidth.value) || 6.3
+  const cardHeight = parseFloat(layoutCardHeight.value) || 8.8
+  const margin = parseFloat(layoutCardMargin.value)
+  const outerMargin = parseFloat(layoutOuterMargin.value) || 1.0
+  
+  console.log('Paramètres du modèle:', { modelName, orientation, cardWidth, cardHeight, margin, outerMargin })
+  
+  // Calculer la grille optimale
+  const a4Width = orientation === 'portrait' ? 21 - (2 * outerMargin) : 29.7 - (2 * outerMargin)
+  const a4Height = orientation === 'portrait' ? 29.7 - (2 * outerMargin) : 21 - (2 * outerMargin)
+  const cardsPerRow = Math.floor((a4Width + margin) / (cardWidth + margin))
+  const cardsPerColumn = Math.floor((a4Height + margin) / (cardHeight + margin))
+  
+  // Créer le modèle
+  const layoutModel = {
+    name: modelName,
+    orientation: orientation,
+    cardWidth: cardWidth,
+    cardHeight: cardHeight,
+    margin: margin,
+    outerMargin: outerMargin,
+    cardsPerRow: cardsPerRow,
+    cardsPerColumn: cardsPerColumn,
+    totalCards: cardsPerRow * cardsPerColumn,
+    createdAt: new Date().toISOString()
+  }
+  
+  console.log('Modèle créé:', layoutModel)
+  
+  // Sauvegarder
+  savedLayoutModels[modelName] = layoutModel
+  localStorage.setItem('savedLayoutModels', JSON.stringify(savedLayoutModels))
+  
+  // Mettre à jour l'affichage
+  updateLayoutModelsList()
+  
+  // Vider le champ de nom
+  layoutModelName.value = ''
+  
+  showNotification(`Modèle de planche "${modelName}" sauvegardé !`, 'success')
+}
+
+/**
+ * Télécharge tous les modèles de layout en JSON
+ */
+function downloadAllLayoutModels() {
+  const dataStr = JSON.stringify(savedLayoutModels, null, 2)
+  const dataBlob = new Blob([dataStr], {type: 'application/json'})
+  
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(dataBlob)
+  link.download = 'layout-models.json'
+  link.click()
+  
+  showNotification('Tous les modèles de layout ont été téléchargés !', 'success')
+}
+
+/**
+ * Charge les modèles de layout depuis un fichier JSON
+ */
+function loadLayoutModelsFromFile(file) {
+  const reader = new FileReader()
+  reader.onload = function(e) {
+    try {
+      const importedModels = JSON.parse(e.target.result)
+      
+      // Fusionner avec les modèles existants
+      Object.assign(savedLayoutModels, importedModels)
+      localStorage.setItem('savedLayoutModels', JSON.stringify(savedLayoutModels))
+      
+      // Mettre à jour l'affichage
+      updateLayoutModelsList()
+      
+      showNotification('Modèles de layout importés avec succès !', 'success')
+    } catch (error) {
+      showNotification('Erreur lors de l\'importation du fichier JSON', 'error')
+      console.error('Erreur import JSON:', error)
+    }
+  }
+  reader.readAsText(file)
+}
+
+/**
+ * Met à jour la liste des modèles de layout sauvegardés
+ */
+function updateLayoutModelsList() {
+  if (!layoutModelsList) return
+  
+  const models = Object.values(savedLayoutModels)
+  
+  if (models.length === 0) {
+    layoutModelsList.innerHTML = '<p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="layout.none">Aucun modèle de planche sauvegardé</p>'
+    return
+  }
+  
+  layoutModelsList.innerHTML = models.map(model => `
+    <div class="model-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; margin: 0.25rem 0; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); box-shadow: var(--shadow-sm);">
+      <div class="model-name" style="flex-grow: 1; font-weight: 600; color: var(--text-primary); font-size: 0.875rem;">
+        ${model.name}
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+          ${model.cardsPerRow}×${model.cardsPerColumn} cartes (${model.totalCards} total)
+        </div>
+      </div>
+      <div class="model-actions" style="display: flex; gap: 0.5rem;">
+        <button class="view-svg" onclick="loadLayoutModel('${model.name}')" style="margin: 5px; padding: 8px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;" title="Voir">👁️</button>
+        <button class="download-svg" onclick="downloadLayoutModel('${model.name}')" style="margin: 5px; padding: 8px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;" title="Télécharger">📥</button>
+        <button class="delete-model" onclick="deleteLayoutModel('${model.name}')" style="margin: 5px; padding: 8px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;" title="Supprimer">🗑️</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+/**
+ * Charge un modèle de layout
+ */
+function loadLayoutModel(modelName) {
+  const model = savedLayoutModels[modelName]
+  if (!model) return
+  
+  // Appliquer les paramètres
+  layoutOrientation.value = model.orientation
+  layoutCardWidth.value = model.cardWidth
+  layoutCardHeight.value = model.cardHeight
+  layoutCardMargin.value = model.margin
+  layoutOuterMargin.value = model.outerMargin || 1.0 // Valeur par défaut si pas de marge extérieure
+  
+  // Recalculer et afficher
+  calculateOptimalLayout()
+  
+  showNotification(`Modèle "${modelName}" chargé !`, 'success')
+}
+
+/**
+ * Télécharge un modèle de layout
+ */
+function downloadLayoutModel(modelName) {
+  const model = savedLayoutModels[modelName]
+  if (!model) return
+  
+  // Générer le SVG du modèle
+  const a4Width = model.orientation === 'portrait' ? 19 : 27.7
+  const a4Height = model.orientation === 'portrait' ? 27.7 : 19
+  const scale = 37.8
+  
+  const cardWidthPx = model.cardWidth * scale
+  const cardHeightPx = model.cardHeight * scale
+  const marginPx = model.margin * scale
+  
+  const usedWidth = model.cardsPerRow * model.cardWidth + (model.cardsPerRow - 1) * model.margin
+  const usedHeight = model.cardsPerColumn * model.cardHeight + (model.cardsPerColumn - 1) * model.margin
+  const centerMarginX = (a4Width - usedWidth) / 2
+  const centerMarginY = (a4Height - usedHeight) / 2
+  
+  const centerMarginXPx = centerMarginX * scale
+  const centerMarginYPx = centerMarginY * scale
+  
+  let svgContent = `
+    <svg width="${a4Width * scale}" height="${a4Height * scale}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${a4Width * scale} ${a4Height * scale}">
+      <defs>
+        <style>
+          .page-border { fill: none; stroke: #333; stroke-width: 2; }
+          .card-slot { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1; }
+        </style>
+      </defs>
+      
+      <!-- Bordure de la page A4 -->
+      <rect class="page-border" x="0" y="0" width="${a4Width * scale}" height="${a4Height * scale}" />
+      
+      <!-- Grille des cartes -->
+      <g id="cards-grid">
+  `
+  
+  for (let row = 0; row < model.cardsPerColumn; row++) {
+    for (let col = 0; col < model.cardsPerRow; col++) {
+      const x = centerMarginXPx + col * (cardWidthPx + marginPx)
+      const y = centerMarginYPx + row * (cardHeightPx + marginPx)
+      
+      svgContent += `
+        <rect class="card-slot" x="${x}" y="${y}" width="${cardWidthPx}" height="${cardHeightPx}" rx="2" />
+      `
+    }
+  }
+  
+  svgContent += `
+      </g>
+    </svg>
+  `
+  
+  // Télécharger le fichier
+  const blob = new Blob([svgContent], { type: 'image/svg+xml' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${modelName.replace(/[^a-zA-Z0-9_-]/g, '_')}_layout.svg`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  
+  showNotification(`Modèle "${modelName}" téléchargé !`, 'success')
+}
+
+/**
+ * Supprime un modèle de layout
+ */
+function deleteLayoutModel(modelName) {
+  if (!confirm(`Êtes-vous sûr de vouloir supprimer le modèle "${modelName}" ?`)) {
+    return
+  }
+  
+  delete savedLayoutModels[modelName]
+  localStorage.setItem('savedLayoutModels', JSON.stringify(savedLayoutModels))
+  updateLayoutModelsList()
+  
+  showNotification(`Modèle "${modelName}" supprimé !`, 'success')
+}
+
+/**
+ * Charge les modèles de layout sauvegardés
+ */
+function loadSavedLayoutModels() {
+  const saved = localStorage.getItem('savedLayoutModels')
+  if (saved) {
+    try {
+      savedLayoutModels = JSON.parse(saved)
+      updateLayoutModelsList()
+    } catch (error) {
+      console.error('Erreur lors du chargement des modèles de layout:', error)
+      savedLayoutModels = {}
+    }
+  }
+}
+
 function initSheetGrid() {
-  // Créer la grille 3x3 des sélecteurs
-  sheetSelectors.innerHTML = ''
-  for (let i = 0; i < 9; i++) {
-    const selectDiv = document.createElement('div')
-    selectDiv.innerHTML = `
-      <select class="sheet-selector" id="sheet-selector-${i}" onchange="updateSheetCard(${i})">
-        <option value="">${i18n.t('generation.selectCard')}</option>
-      </select>
-    `
-    sheetSelectors.appendChild(selectDiv)
+  // Créer la grille 5x5 des sélecteurs
+  if (cardSelectionGrid) {
+    cardSelectionGrid.innerHTML = ''
+    for (let i = 0; i < 25; i++) {
+      const selectDiv = document.createElement('div')
+      selectDiv.innerHTML = `
+        <select class="sheet-selector" id="sheet-selector-${i}" onchange="updateSheetCard(${i})">
+          <option value="">${i18n.t('generation.selectCard')}</option>
+        </select>
+      `
+      cardSelectionGrid.appendChild(selectDiv)
+    }
+  }
+  
+  // Initialiser la grille 3x3 pour la compatibilité
+  if (sheetSelectors) {
+    sheetSelectors.innerHTML = ''
+    for (let i = 0; i < 9; i++) {
+      const selectDiv = document.createElement('div')
+      selectDiv.innerHTML = `
+        <select class="sheet-selector" id="sheet-selector-${i}" onchange="updateSheetCard(${i})">
+          <option value="">${i18n.t('generation.selectCard')}</option>
+        </select>
+      `
+      sheetSelectors.appendChild(selectDiv)
+    }
   }
   
   // Mettre à jour les options des sélecteurs

@@ -994,6 +994,7 @@
                <button class="tab-button" data-tab="texts" role="tab" aria-selected="false" aria-controls="texts-tab" id="tab-texts" data-i18n="nav.texts" data-i18n-title="nav.texts">📝 Textes sources</button>
                <button class="tab-button" data-tab="lists" role="tab" aria-selected="false" aria-controls="lists-tab" id="tab-lists" data-i18n="nav.lists" data-i18n-title="nav.lists">📋 Listes</button>
                <button class="tab-button" data-tab="generation" role="tab" aria-selected="false" aria-controls="generation-tab" id="tab-generation" data-i18n="nav.generation" data-i18n-title="nav.generation">⚡ Génération</button>
+               <button class="tab-button" data-tab="layout" role="tab" aria-selected="false" aria-controls="layout-tab" id="tab-layout" data-i18n="nav.layout" data-i18n-title="nav.layout">📐 Modèles de planche</button>
                <button class="tab-button" data-tab="sheet" role="tab" aria-selected="false" aria-controls="sheet-tab" id="tab-sheet" data-i18n="nav.sheet" data-i18n-title="nav.sheet">📄 Planche</button>
            </div>
        </div>
@@ -1173,6 +1174,7 @@
                                         <input id="cardLineInput" type="number" min="1" value="1" style="width: 100px;" />
                                     </div>
                                 <button id="generateCardButton" type="button" data-i18n="generation.generateButton">GÉNÉRER LA CARTE</button>
+                                <button id="generateAllLinesButton" type="button" data-i18n="generation.generateAllButton" style="background: linear-gradient(135deg, var(--success-color), #059669);">GÉNÉRER TOUTES LES LIGNES</button>
                                 </div>
                             </div>
                         </div>
@@ -1186,15 +1188,111 @@
                         </div>
                     </div>
                     
+                    <!-- Onglet Modèles de planche -->
+                    <div id="layout-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-layout" aria-hidden="true">
+                        <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="layout.title">Modèles de Planche</h3>
+                        
+                        <!-- Paramètres de layout -->
+                        <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="layout.parameters">Paramètres de layout :</h4>
+                            
+                            <!-- Orientation -->
+                            <div style="margin-bottom: 1rem;">
+                                <label for="layoutOrientation" data-i18n="layout.orientation">Orientation :</label>
+                                <select id="layoutOrientation" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+                                    <option value="portrait" data-i18n="layout.portrait">Portrait</option>
+                                    <option value="landscape" data-i18n="layout.landscape">Paysage</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Dimensions des cartes -->
+                            <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                                <div style="flex: 1;">
+                                    <label for="layoutCardWidth" data-i18n="layout.cardWidth">Largeur carte (cm) :</label>
+                                    <input id="layoutCardWidth" type="number" min="1" max="20" step="0.1" value="6.3" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;" />
+                                </div>
+                                <div style="flex: 1;">
+                                    <label for="layoutCardHeight" data-i18n="layout.cardHeight">Hauteur carte (cm) :</label>
+                                    <input id="layoutCardHeight" type="number" min="1" max="30" step="0.1" value="8.8" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;" />
+                                </div>
+                            </div>
+                            
+                            <!-- Marge entre cartes -->
+                            <div style="margin-bottom: 1rem;">
+                                <label for="layoutCardMargin" data-i18n="layout.cardMargin">Marge entre cartes (cm) :</label>
+                                <input id="layoutCardMargin" type="number" min="0" max="5" step="0.1" value="0.5" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;" />
+                            </div>
+                            
+                            <!-- Marge extérieure de la grille -->
+                            <div style="margin-bottom: 1rem;">
+                                <label for="layoutOuterMargin" data-i18n="layout.outerMargin">Marge extérieure de la grille (cm) :</label>
+                                <input id="layoutOuterMargin" type="number" min="0" max="5" step="0.1" value="1.0" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;" />
+                            </div>
+                            
+                            <!-- Nom du modèle -->
+                            <div style="margin-bottom: 1rem;">
+                                <label for="layoutModelName" data-i18n="layout.modelName">Nom du modèle de planche :</label>
+                                <input id="layoutModelName" type="text" data-i18n="layout.modelNamePlaceholder" placeholder="Entrez un nom pour le modèle" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;" />
+                            </div>
+                            
+                            <!-- Bouton de sauvegarde manuelle -->
+                            <div style="margin-bottom: 1rem;">
+                                <button id="saveLayoutModelButton" type="button" data-i18n="layout.saveModel" style="width: 100%; background: linear-gradient(135deg, var(--success-color), #059669); color: white; border: none; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; cursor: pointer;">SAUVEGARDER LE MODÈLE DE PLANCHE</button>
+                            </div>
+                            
+                            <!-- Export des modèles -->
+                        </div>
+                        
+                        <!-- Informations de calcul -->
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="layout.calculation">Calcul automatique :</h4>
+                            <div id="layoutCalculationInfo" style="font-size: 0.875rem; color: var(--text-secondary);">
+                                <div data-i18n="layout.calculating">Calcul en cours...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Liste des modèles de planche sauvegardés -->
+                        <div>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="layout.saved">Modèles de planche sauvegardés :</h4>
+                            <div id="layoutModelsList" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 0.75rem; background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                                <p style="color: var(--text-secondary); font-style: italic; text-align: center; margin: 1.5rem 0;" data-i18n="layout.none">Aucun modèle de planche sauvegardé</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Onglet Planche de cartes -->
                     <div id="sheet-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-sheet" aria-hidden="true">
                         <h3 style="color: var(--text-primary); font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="sheet.title">Planche de Cartes</h3>
                         
-                        <!-- Grille 3x3 des sélecteurs -->
-                        <div style="margin-bottom: 1rem;">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="sheet.selection">Sélection des cartes :</h4>
-                            <div id="sheetSelectors" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                                <!-- Les 9 sélecteurs seront générés dynamiquement -->
+                        <!-- Sélection du modèle de planche -->
+                        <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="sheet.modelSelection">Sélection du modèle de planche :</h4>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label for="sheetModelSelector" data-i18n="sheet.selectModel">Modèle de planche :</label>
+                                <select id="sheetModelSelector" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+                                    <option value="" data-i18n="sheet.noModel">Aucun modèle sélectionné</option>
+                                </select>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <label for="sheetModelInfo" data-i18n="sheet.modelInfo">Informations du modèle :</label>
+                                <div id="sheetModelInfo" style="padding: 0.75rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: var(--radius-md); font-size: 0.875rem; color: var(--text-secondary);">
+                                    <div data-i18n="sheet.noModelSelected">Aucun modèle de planche sélectionné</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grille de sélection des cartes -->
+                        <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="sheet.cardSelection">Sélection des cartes :</h4>
+                            
+                            <div id="cardSelectionGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+                                <!-- Les cases de sélection seront générées dynamiquement -->
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <button id="generateSheetButton" type="button" data-i18n="sheet.generate" style="background: linear-gradient(135deg, var(--success-color), #059669); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-size: 0.875rem; cursor: pointer;">GÉNÉRER LA PLANCHE</button>
                             </div>
                         </div>
                         
