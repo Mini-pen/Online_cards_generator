@@ -25,8 +25,8 @@ class LanguageSelector {
     container.className = 'language-selector'
     container.style.cssText = `
       position: fixed;
-      top: 15px;
-      right: 20px;
+      top: 9px;
+      right: 50px;
       z-index: 1000;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     `
