@@ -11,6 +11,15 @@ export const translations = {
     'nav.layout': '📐 Modèles de planche',
     'nav.sheet': '📄 Planche',
     
+    // Renommage de fichier
+    'rename.title': 'Renommer le fichier',
+    'rename.filename': 'Nom du fichier :',
+    'rename.cancel': 'Annuler',
+    'rename.confirm': 'OK',
+    
+    // Thème
+    'theme.toggle': 'Basculer entre mode clair et sombre',
+    
     // Projet
     'project.title': 'Gestion du Projet',
     'project.current': 'Projet actuel',
@@ -34,6 +43,7 @@ export const translations = {
     'models.none': 'Aucun modèle sauvegardé',
     'models.code': 'Code SVG (plusieurs lignes) :',
     'models.loadCode': 'CHARGER DEPUIS SVG LE CODE',
+    'models.importFile': 'IMPORTER UN FICHIER SVG',
     'models.selectFile': 'Ou sélectionnez un fichier SVG local :',
     'models.loadFile': 'CHARGER SVG DEPUIS LE FICHIER',
     'models.view': 'Voir',
@@ -46,6 +56,7 @@ export const translations = {
     'images.name': 'Nom de l\'image :',
     'images.namePlaceholder': 'Entrez un nom pour l\'image',
     'images.uploadButton': 'UPLOADER L\'IMAGE',
+    'images.importFile': 'IMPORTER UNE IMAGE',
     'images.uploaded': 'Images uploadées :',
     'images.none': 'Aucune image uploadée',
     
@@ -55,6 +66,7 @@ export const translations = {
     'texts.name': 'Nom du texte :',
     'texts.namePlaceholder': 'Entrez un nom pour le texte',
     'texts.uploadButton': 'UPLOADER LE TEXTE',
+    'texts.importFile': 'IMPORTER UN FICHIER TEXTE',
     'texts.uploaded': 'Textes uploadés :',
     'texts.none': 'Aucun texte uploadé',
     
@@ -92,6 +104,7 @@ export const translations = {
     'layout.modelName': 'Nom du modèle de planche :',
     'layout.modelNamePlaceholder': 'Entrez un nom pour le modèle',
     'layout.saveModel': 'SAUVEGARDER LE MODÈLE DE PLANCHE',
+    'layout.importModels': 'IMPORTER DES MODÈLES',
     'layout.calculation': 'Calcul automatique :',
     'layout.calculating': 'Calcul en cours...',
     'layout.saved': 'Modèles de planche sauvegardés :',
@@ -173,6 +186,15 @@ export const translations = {
     'nav.layout': '📐 Layout Models',
     'nav.sheet': '📄 Sheet',
     
+    // File renaming
+    'rename.title': 'Rename file',
+    'rename.filename': 'File name:',
+    'rename.cancel': 'Cancel',
+    'rename.confirm': 'OK',
+    
+    // Theme
+    'theme.toggle': 'Toggle between light and dark mode',
+    
     // Project
     'project.title': 'Project Management',
     'project.current': 'Current Project',
@@ -196,6 +218,7 @@ export const translations = {
     'models.none': 'No saved models',
     'models.code': 'SVG Code (multiple lines):',
     'models.loadCode': 'LOAD FROM SVG CODE',
+    'models.importFile': 'IMPORT SVG FILE',
     'models.selectFile': 'Or select a local SVG file:',
     'models.loadFile': 'LOAD SVG FROM FILE',
     'models.view': 'View',
@@ -208,6 +231,7 @@ export const translations = {
     'images.name': 'Image name:',
     'images.namePlaceholder': 'Enter a name for the image',
     'images.uploadButton': 'UPLOAD IMAGE',
+    'images.importFile': 'IMPORT IMAGE',
     'images.uploaded': 'Uploaded images:',
     'images.none': 'No uploaded images',
     
@@ -217,6 +241,7 @@ export const translations = {
     'texts.name': 'Text name:',
     'texts.namePlaceholder': 'Enter a name for the text',
     'texts.uploadButton': 'UPLOAD TEXT',
+    'texts.importFile': 'IMPORT TEXT FILE',
     'texts.uploaded': 'Uploaded texts:',
     'texts.none': 'No uploaded texts',
     
@@ -254,6 +279,7 @@ export const translations = {
     'layout.modelName': 'Layout model name:',
     'layout.modelNamePlaceholder': 'Enter a name for the model',
     'layout.saveModel': 'SAVE LAYOUT MODEL',
+    'layout.importModels': 'IMPORT MODELS',
     'layout.calculation': 'Automatic calculation:',
     'layout.calculating': 'Calculating...',
     'layout.saved': 'Saved layout models:',
@@ -328,6 +354,9 @@ export const translations = {
     'nav.layout': '📐 Modelos de diseño',
     'nav.sheet': '📄 Hoja',
     
+    // Tema
+    'theme.toggle': 'Alternar entre modo claro y oscuro',
+    
     // Project
     'project.title': 'Gestión del Proyecto',
     'project.current': 'Proyecto actual',
@@ -351,6 +380,7 @@ export const translations = {
     'models.none': 'Ningún modelo guardado',
     'models.code': 'Código SVG (múltiples líneas):',
     'models.loadCode': 'CARGAR DESDE CÓDIGO SVG',
+    'models.importFile': 'IMPORTAR ARCHIVO SVG',
     'models.selectFile': 'O selecciona un archivo SVG local:',
     'models.loadFile': 'CARGAR SVG DESDE ARCHIVO',
     'models.view': 'Ver',
@@ -409,6 +439,7 @@ export const translations = {
     'layout.modelName': 'Nombre del modelo de diseño:',
     'layout.modelNamePlaceholder': 'Introduce un nombre para el modelo',
     'layout.saveModel': 'GUARDAR MODELO DE DISEÑO',
+    'layout.importModels': 'IMPORTAR MODELOS',
     'layout.calculation': 'Cálculo automático:',
     'layout.calculating': 'Calculando...',
     'layout.saved': 'Modelos de diseño guardados:',
@@ -482,6 +513,9 @@ export const translations = {
     'nav.generation': '⚡ Generierung',
     'nav.layout': '📐 Layout-Modelle',
     'nav.sheet': '📄 Blatt',
+    
+    // Thema
+    'theme.toggle': 'Zwischen hellem und dunklem Modus wechseln',
     
     // Projet
     'project.title': 'Projektverwaltung',
@@ -561,6 +595,7 @@ export const translations = {
     'layout.modelName': 'Layout-Modellname:',
     'layout.modelNamePlaceholder': 'Geben Sie einen Namen für das Modell ein',
     'layout.saveModel': 'LAYOUT-MODELL SPEICHERN',
+    'layout.importModels': 'MODELLE IMPORTIEREN',
     'layout.calculation': 'Automatische Berechnung:',
     'layout.calculating': 'Berechnung läuft...',
     'layout.saved': 'Gespeicherte Layout-Modelle:',
@@ -634,6 +669,9 @@ export const translations = {
     'nav.generation': '⚡ Generazione',
     'nav.layout': '📐 Modelli di Layout',
     'nav.sheet': '📄 Foglio',
+    
+    // Tema
+    'theme.toggle': 'Passa tra modalità chiara e scura',
     
     // Projet
     'project.title': 'Gestione Progetto',
@@ -713,6 +751,7 @@ export const translations = {
     'layout.modelName': 'Nome modello di layout:',
     'layout.modelNamePlaceholder': 'Inserisci un nome per il modello',
     'layout.saveModel': 'SALVA MODELLO DI LAYOUT',
+    'layout.importModels': 'IMPORTA MODELLI',
     'layout.calculation': 'Calcolo automatico:',
     'layout.calculating': 'Calcolo in corso...',
     'layout.saved': 'Modelli di layout salvati:',
@@ -786,6 +825,9 @@ export const translations = {
     'nav.generation': '⚡ Geração',
     'nav.layout': '📐 Modelos de Layout',
     'nav.sheet': '📄 Folha',
+    
+    // Tema
+    'theme.toggle': 'Alternar entre modo claro e escuro',
     
     // Projet
     'project.title': 'Gerenciamento de Projeto',
@@ -865,6 +907,7 @@ export const translations = {
     'layout.modelName': 'Nome do modelo de layout:',
     'layout.modelNamePlaceholder': 'Digite um nome para o modelo',
     'layout.saveModel': 'SALVAR MODELO DE LAYOUT',
+    'layout.importModels': 'IMPORTAR MODELOS',
     'layout.calculation': 'Cálculo automático:',
     'layout.calculating': 'Calculando...',
     'layout.saved': 'Modelos de layout salvos:',

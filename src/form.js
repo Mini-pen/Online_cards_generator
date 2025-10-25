@@ -19,6 +19,7 @@ let currentSVGContent
 // Variables pour la gestion des modèles
 let modelNameInput
 let saveModelButton
+let importSVGButton
 let modelsList
 let savedModels = {} // Stockage des modèles en mémoire
 
@@ -62,9 +63,23 @@ let layoutCardMargin
 let layoutOuterMargin
 let layoutModelName
 let saveLayoutModelButton
+let importLayoutModelsButton
+let layoutModelsFileInput
 let layoutModelsList
 let layoutCalculationInfo
 let savedLayoutModels = {} // Stockage des modèles de planche en mémoire
+
+// Variables pour le thème
+let themeToggleButton
+let currentTheme = 'light' // 'light' ou 'dark'
+
+// Variables pour le renommage de fichier
+let renameFileModal
+let renameFileInput
+let renameFileCancel
+let renameFileConfirm
+let currentFileToRename = null
+let currentFileType = null // 'image' ou 'text'
 
 // Template SVG pour la planche 3x3
 const sheetTemplate = `
@@ -108,6 +123,7 @@ var currentText = null // Texte actuellement affiché
 // Variables pour les images sources
 var imageFileInput
 var imageNameInput
+var importImageButton
 var uploadImageButton
 var imagesList
 var savedImages = {} // Stockage des images en mémoire (IndexedDB)
@@ -115,6 +131,7 @@ var savedImages = {} // Stockage des images en mémoire (IndexedDB)
 // Variables pour les textes sources
 var textFileInput
 var textNameInput
+var importTextButton
 var uploadTextButton
 var textsList
 var savedTexts = {} // Stockage des textes en mémoire (IndexedDB)
@@ -204,6 +221,8 @@ function initForm () {
   initCardGeneration()
   initSheetManagement()
   initLayoutManagement()
+  initThemeManagement()
+  initRenameDialog()
 
   var validateCalcButton = document.getElementById('validateCalcButton')
   if (validateCalcButton) {
@@ -286,6 +305,14 @@ function initForm () {
   var loadSVGButton = document.getElementById('loadSVGButton')
   if (loadSVGButton) {
     loadSVGButton.addEventListener('click', loadSelectedSVGFile)
+  }
+  
+  // Nouveau bouton d'importation SVG
+  var importSVGButton = document.getElementById('importSVGButton')
+  if (importSVGButton) {
+    importSVGButton.addEventListener('click', function() {
+      svgFileInput.click()
+    })
   }
 
   var csvButton = document.getElementById('CSVbutton')
@@ -487,6 +514,11 @@ function initTabs() {
   tabButtons.forEach(button => {
     button.addEventListener('click', function() {
       const targetTab = this.getAttribute('data-tab')
+      
+      // Ignorer le bouton de thème
+      if (targetTab === 'none' || this.id === 'themeToggleButton') {
+        return
+      }
       
       // Désactiver tous les onglets avec animation
       tabButtons.forEach(btn => {
@@ -2076,6 +2108,168 @@ function optimizeListRendering(container, items, renderItem) {
   }
 }
 
+// ===== GESTION DU DIALOGUE DE RENOMMAGE =====
+
+function initRenameDialog() {
+  renameFileModal = document.getElementById('renameFileModal')
+  renameFileInput = document.getElementById('renameFileInput')
+  renameFileCancel = document.getElementById('renameFileCancel')
+  renameFileConfirm = document.getElementById('renameFileConfirm')
+  
+  if (!renameFileModal || !renameFileInput || !renameFileCancel || !renameFileConfirm) {
+    console.error('Éléments de dialogue de renommage non trouvés')
+    return
+  }
+  
+  // Event listeners
+  renameFileCancel.addEventListener('click', closeRenameDialog)
+  renameFileConfirm.addEventListener('click', confirmRename)
+  
+  // Fermer avec Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && renameFileModal.style.display !== 'none') {
+      closeRenameDialog()
+    }
+  })
+  
+  // Fermer en cliquant à l'extérieur
+  renameFileModal.addEventListener('click', function(e) {
+    if (e.target === renameFileModal) {
+      closeRenameDialog()
+    }
+  })
+  
+  console.log('Dialogue de renommage initialisé')
+}
+
+function showRenameDialog(file, fileType) {
+  currentFileToRename = file
+  currentFileType = fileType
+  
+  // Extraire le nom du fichier sans extension
+  const fileName = file.name.replace(/\.[^/.]+$/, '')
+  renameFileInput.value = fileName
+  
+  renameFileModal.style.display = 'flex'
+  renameFileInput.focus()
+  renameFileInput.select()
+}
+
+function closeRenameDialog() {
+  renameFileModal.style.display = 'none'
+  currentFileToRename = null
+  currentFileType = null
+}
+
+function confirmRename() {
+  const newName = renameFileInput.value.trim()
+  
+  if (!newName) {
+    showNotification('Veuillez entrer un nom de fichier', 'error')
+    return
+  }
+  
+  if (!currentFileToRename) {
+    showNotification('Aucun fichier à renommer', 'error')
+    return
+  }
+  
+  // Traiter le fichier selon son type
+  if (currentFileType === 'image') {
+    processImageFile(currentFileToRename, newName)
+  } else if (currentFileType === 'text') {
+    processTextFile(currentFileToRename, newName)
+  }
+  
+  closeRenameDialog()
+}
+
+function processImageFile(file, name) {
+  const reader = new FileReader()
+  
+  reader.onload = function(e) {
+    const imageData = e.target.result
+    
+    // Sauvegarder l'image avec le nouveau nom
+    saveImageToIndexedDB(name, imageData, file.type).then(() => {
+      savedImages[name] = {
+        data: imageData,
+        type: file.type
+      }
+      updateImagesList()
+      showNotification(`Image "${name}" importée avec succès !`, 'success')
+    }).catch(error => {
+      console.error('Erreur lors de la sauvegarde de l\'image:', error)
+      showNotification('Erreur lors de l\'importation de l\'image', 'error')
+    })
+  }
+  
+  reader.readAsDataURL(file)
+}
+
+function processTextFile(file, name) {
+  const reader = new FileReader()
+  
+  reader.onload = function(e) {
+    const textContent = e.target.result
+    
+    // Sauvegarder le texte avec le nouveau nom
+    saveTextToIndexedDB(name, textContent, 'text/plain').then(() => {
+      savedTexts[name] = {
+        content: textContent,
+        type: 'text/plain'
+      }
+      updateTextsList()
+      showNotification(`Texte "${name}" importé avec succès !`, 'success')
+    }).catch(error => {
+      console.error('Erreur lors de la sauvegarde du texte:', error)
+      showNotification('Erreur lors de l\'importation du texte', 'error')
+    })
+  }
+  
+  reader.readAsText(file)
+}
+
+// ===== GESTION DU THÈME =====
+
+function initThemeManagement() {
+  themeToggleButton = document.getElementById('themeToggleButton')
+  
+  if (!themeToggleButton) {
+    console.error('themeToggleButton not found')
+    return
+  }
+  
+  // Charger le thème sauvegardé
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    currentTheme = savedTheme
+    applyTheme(currentTheme)
+  }
+  
+  // Event listener pour le bouton de basculement
+  themeToggleButton.addEventListener('click', toggleTheme)
+  
+  console.log('Gestion du thème initialisée')
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'light' ? 'dark' : 'light'
+  applyTheme(currentTheme)
+  localStorage.setItem('theme', currentTheme)
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme)
+  
+  // Mettre à jour l'icône du bouton
+  if (themeToggleButton) {
+    themeToggleButton.textContent = theme === 'light' ? '🌙' : '☀️'
+  }
+  
+  console.log(`Thème appliqué: ${theme}`)
+}
+
 // ===== GESTION DE LA PLANCHE DE CARTES =====
 
 function initSheetManagement() {
@@ -2104,8 +2298,9 @@ function initLayoutManagement() {
   layoutCardMargin = document.getElementById('layoutCardMargin')
   layoutOuterMargin = document.getElementById('layoutOuterMargin')
   layoutModelName = document.getElementById('layoutModelName')
-  downloadLayoutModelsButton = document.getElementById('downloadLayoutModelsButton')
   saveLayoutModelButton = document.getElementById('saveLayoutModelButton')
+  importLayoutModelsButton = document.getElementById('importLayoutModelsButton')
+  layoutModelsFileInput = document.getElementById('layoutModelsFileInput')
   layoutModelsList = document.getElementById('layoutModelsList')
   layoutCalculationInfo = document.getElementById('layoutCalculationInfo')
   
@@ -2116,7 +2311,6 @@ function initLayoutManagement() {
     cardMargin: !!layoutCardMargin,
     outerMargin: !!layoutOuterMargin,
     modelName: !!layoutModelName,
-    downloadButton: !!downloadLayoutModelsButton,
     saveButton: !!saveLayoutModelButton,
     modelsList: !!layoutModelsList,
     calculationInfo: !!layoutCalculationInfo
@@ -2129,10 +2323,19 @@ function initLayoutManagement() {
     console.error('saveLayoutModelButton not found')
   }
   
-  if (downloadLayoutModelsButton) {
-    downloadLayoutModelsButton.addEventListener('click', downloadAllLayoutModels)
+  if (importLayoutModelsButton && layoutModelsFileInput) {
+    importLayoutModelsButton.addEventListener('click', function() {
+      layoutModelsFileInput.click()
+    })
+    
+    layoutModelsFileInput.addEventListener('change', function(event) {
+      const file = event.target.files[0]
+      if (file) {
+        loadLayoutModelsFromFile(file)
+      }
+    })
   } else {
-    console.error('downloadLayoutModelsButton not found')
+    console.error('importLayoutModelsButton or layoutModelsFileInput not found')
   }
   
   // Événements pour le calcul automatique
@@ -2360,17 +2563,6 @@ function saveLayoutModel() {
 /**
  * Télécharge tous les modèles de layout en JSON
  */
-function downloadAllLayoutModels() {
-  const dataStr = JSON.stringify(savedLayoutModels, null, 2)
-  const dataBlob = new Blob([dataStr], {type: 'application/json'})
-  
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(dataBlob)
-  link.download = 'layout-models.json'
-  link.click()
-  
-  showNotification('Tous les modèles de layout ont été téléchargés !', 'success')
-}
 
 /**
  * Charge les modèles de layout depuis un fichier JSON
@@ -3638,6 +3830,7 @@ function loadTextInSVGArea(text, name) {
 function initImagesManagement() {
   imageFileInput = document.getElementById('imageFileInput')
   imageNameInput = document.getElementById('imageNameInput')
+  importImageButton = document.getElementById('importImageButton')
   uploadImageButton = document.getElementById('uploadImageButton')
   imagesList = document.getElementById('imagesList')
   
@@ -3648,6 +3841,20 @@ function initImagesManagement() {
   
   // Événements
   uploadImageButton.addEventListener('click', uploadImage)
+  
+  // Nouveau bouton d'importation d'images
+  if (importImageButton) {
+    importImageButton.addEventListener('click', function() {
+      imageFileInput.click()
+    })
+    
+    imageFileInput.addEventListener('change', function(event) {
+      const file = event.target.files[0]
+      if (file) {
+        showRenameDialog(file, 'image')
+      }
+    })
+  }
   
   // Charger les images sauvegardées
   loadImagesFromIndexedDB().then(() => {
@@ -3826,6 +4033,7 @@ function deleteImage(name) {
 function initTextsManagement() {
   textFileInput = document.getElementById('textFileInput')
   textNameInput = document.getElementById('textNameInput')
+  importTextButton = document.getElementById('importTextButton')
   uploadTextButton = document.getElementById('uploadTextButton')
   textsList = document.getElementById('textsList')
   
@@ -3836,6 +4044,20 @@ function initTextsManagement() {
   
   // Événements
   uploadTextButton.addEventListener('click', uploadText)
+  
+  // Nouveau bouton d'importation de textes
+  if (importTextButton) {
+    importTextButton.addEventListener('click', function() {
+      textFileInput.click()
+    })
+    
+    textFileInput.addEventListener('change', function(event) {
+      const file = event.target.files[0]
+      if (file) {
+        showRenameDialog(file, 'text')
+      }
+    })
+  }
   
   // Charger les textes sauvegardés
   loadTextsFromIndexedDB().then(() => {
@@ -4118,7 +4340,8 @@ function saveProject() {
                       Object.keys(generatedCards).length > 0 || 
                       Object.keys(savedSheets).length > 0 ||
                       Object.keys(savedImages).length > 0 ||
-                      Object.keys(savedTexts).length > 0
+                      Object.keys(savedTexts).length > 0 ||
+                      Object.keys(savedLayoutModels).length > 0
     
     if (!hasContent) {
       showDataStatus('❌ Aucun contenu à sauvegarder', 'error')
@@ -4274,7 +4497,12 @@ function performProjectSave() {
       zip.file('texts.json', JSON.stringify(textsData, null, 2))
     }
     
-    // 6. Sauvegarder la configuration Framacalc
+    // 6. Sauvegarder les modèles de planche
+    if (Object.keys(savedLayoutModels).length > 0) {
+      zip.file('layout_models.json', JSON.stringify(savedLayoutModels, null, 2))
+    }
+    
+    // 7. Sauvegarder la configuration Framacalc
     const framacalcUrl = document.getElementById('framacalcUrlTextBox').value.trim()
     if (framacalcUrl) {
       zip.file('framacalc_config.json', JSON.stringify({
@@ -4545,7 +4773,17 @@ function loadProject() {
           })
         }
         
-        // 6. Charger la configuration Framacalc
+        // 6. Charger les modèles de planche
+        if (zip.file('layout_models.json')) {
+          zip.file('layout_models.json').async('text').then(function(text) {
+            const layoutModelsData = JSON.parse(text)
+            savedLayoutModels = layoutModelsData
+            updateLayoutModelsList()
+            console.log('Modèles de planche chargés:', Object.keys(savedLayoutModels).length)
+          })
+        }
+        
+        // 7. Charger la configuration Framacalc
         if (zip.file('framacalc_config.json')) {
           zip.file('framacalc_config.json').async('text').then(function(text) {
             const config = JSON.parse(text)
@@ -4645,6 +4883,7 @@ function clearProject() {
   savedSheets = {}
   savedImages = {}
   savedTexts = {}
+  savedLayoutModels = {}
   csvHeaders = []
   csvData = []
   currentProjectName = null
@@ -4660,6 +4899,19 @@ function clearProject() {
     transaction.objectStore('texts').clear()
   }
   
+  // Effacer le localStorage
+  localStorage.removeItem('savedModels')
+  localStorage.removeItem('generatedCards')
+  localStorage.removeItem('savedSheets')
+  localStorage.removeItem('savedImages')
+  localStorage.removeItem('savedTexts')
+  localStorage.removeItem('savedLayoutModels')
+  localStorage.removeItem('currentProjectName')
+  localStorage.removeItem('projectCreationDate')
+  localStorage.removeItem('projectLastModified')
+  localStorage.removeItem('projectVersion')
+  localStorage.removeItem('projectDescription')
+  
   // Réinitialiser l'interface
   document.getElementById('framacalcUrlTextBox').value = ''
   updateModelSelector()
@@ -4668,6 +4920,7 @@ function clearProject() {
   updateSheetsList()
   updateImagesList()
   updateTextsList()
+  updateLayoutModelsList()
   updateProjectNameDisplay()
   
   // Réinitialiser la date de création pour le nouveau projet
@@ -4729,7 +4982,10 @@ window.downloadSheet = downloadSheet
 window.viewImage = viewImage
 window.openImageInNewTab = openImageInNewTab
 window.downloadImage = downloadImage
-window.deleteImage = deleteImage
+// Rendre les fonctions globales pour les boutons HTML
+window.loadLayoutModel = loadLayoutModel
+window.downloadLayoutModel = downloadLayoutModel
+window.deleteLayoutModel = deleteLayoutModel
 window.viewText = viewText
 window.openTextInNewTab = openTextInNewTab
 window.downloadText = downloadText

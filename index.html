@@ -7,6 +7,21 @@
 	          src="https://code.jquery.com/jquery-3.1.0.slim.min.js"
 	          integrity="sha256-cRpWjoSOw5KcyIOaZNo4i6fZ9tKPhYYb6i5T9RSVJG8="
 	          crossorigin="anonymous"></script>
+    <!-- Boîte de dialogue de renommage de fichier -->
+    <div id="renameFileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: var(--surface-color); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); min-width: 400px; max-width: 500px;">
+            <h3 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;" data-i18n="rename.title">Renommer le fichier</h3>
+            <div style="margin-bottom: 1rem;">
+                <label for="renameFileInput" style="display: block; color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="rename.filename">Nom du fichier :</label>
+                <input type="text" id="renameFileInput" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem; background: var(--surface-color); color: var(--text-primary);" />
+            </div>
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button id="renameFileCancel" type="button" style="background: var(--button-color); color: white; border: 1px solid var(--button-color); padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-size: 0.875rem; cursor: pointer;" data-i18n="rename.cancel">Annuler</button>
+                <button id="renameFileConfirm" type="button" style="background: var(--success-color); color: white; border: 1px solid var(--success-color); padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-size: 0.875rem; cursor: pointer;" data-i18n="rename.confirm">OK</button>
+            </div>
+        </div>
+    </div>
+
         <script type="application/javascript" src="build/cards-generator.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
         <style>
@@ -18,6 +33,9 @@
                 --success-color: #10b981;
                 --warning-color: #f59e0b;
                 --error-color: #ef4444;
+                --info-color: #3b82f6;
+                --button-color: #6b7280;
+                --button-hover: #4b5563;
                 --background-color: #f8fafc;
                 --surface-color: #ffffff;
                 --border-color: #e2e8f0;
@@ -32,6 +50,48 @@
                 --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
                 --transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            /* Mode sombre */
+            [data-theme="dark"] {
+                --primary-color: #60a5fa;
+                --primary-hover: #3b82f6;
+                --secondary-color: #94a3b8;
+                --success-color: #4ade80;
+                --warning-color: #fbbf24;
+                --error-color: #f87171;
+                --info-color: #38bdf8;
+                --button-color: #6b7280;
+                --button-hover: #4b5563;
+                --background-color: #0f172a;
+                --surface-color: #1e293b;
+                --border-color: #475569;
+                --text-primary: #f8fafc;
+                --text-secondary: #cbd5e1;
+                --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+                --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+                --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+            }
+            
+            /* Onglet actif en mode sombre */
+            [data-theme="dark"] .tab-button.active {
+                background: linear-gradient(135deg, #93c5fd, #60a5fa);
+                color: #1e293b;
+                box-shadow: var(--shadow-md);
+                transform: translateY(-1px);
+                border: 2px solid #bfdbfe;
+            }
+            
+            /* Style global pour tous les boutons */
+            button:not(.language-selector-button):not(.language-selector-item) {
+                background: var(--button-color) !important;
+                color: white !important;
+                border: 1px solid var(--button-color) !important;
+            }
+            
+            button:not(.language-selector-button):not(.language-selector-item):hover {
+                background: var(--button-hover) !important;
+                border-color: var(--button-hover) !important;
             }
             
             /* Optimisations de performance */
@@ -133,10 +193,11 @@
             }
             
             .tab-button.active {
-                background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+                background: linear-gradient(135deg, #60a5fa, #3b82f6);
                 color: white;
                 box-shadow: var(--shadow-md);
                 transform: translateY(-1px);
+                border: 2px solid #93c5fd;
             }
             
             .tab-button.active::before {
@@ -996,6 +1057,7 @@
                <button class="tab-button" data-tab="generation" role="tab" aria-selected="false" aria-controls="generation-tab" id="tab-generation" data-i18n="nav.generation" data-i18n-title="nav.generation">⚡ Génération</button>
                <button class="tab-button" data-tab="layout" role="tab" aria-selected="false" aria-controls="layout-tab" id="tab-layout" data-i18n="nav.layout" data-i18n-title="nav.layout">📐 Modèles de planche</button>
                <button class="tab-button" data-tab="sheet" role="tab" aria-selected="false" aria-controls="sheet-tab" id="tab-sheet" data-i18n="nav.sheet" data-i18n-title="nav.sheet">📄 Planche</button>
+               <button id="themeToggleButton" class="tab-button" data-i18n-tooltip="theme.toggle" aria-label="Basculer entre mode clair et sombre" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem; border-radius: var(--radius-md); cursor: pointer; font-size: 1.2rem; transition: var(--transition); margin-left: auto;" data-tab="none">🌙</button>
            </div>
        </div>
 
@@ -1078,11 +1140,8 @@
                             
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                             <button id="validateSVGButton" type="button" data-i18n="models.loadCode">CHARGER DEPUIS SVG LE CODE</button>
-                                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                    <span style="color: var(--text-secondary); font-size: 0.8rem;" data-i18n="models.selectFile">Ou sélectionnez un fichier SVG local :</span>
-                                    <input type="file" id="svgFileInput" accept=".svg" style="width: auto; flex: 0 0 auto;" />
-                            <button id="loadSVGButton" type="button" data-i18n="models.loadFile">CHARGER SVG DEPUIS LE FICHIER</button>
-                                </div>
+                            <button id="importSVGButton" type="button" data-i18n="models.importFile" style="background: var(--button-color) !important; color: white !important; border: 1px solid var(--button-color) !important; padding: 0.75rem 1rem !important; border-radius: var(--radius-md) !important; font-size: 0.875rem !important; cursor: pointer !important;">IMPORTER UN FICHIER SVG</button>
+                            <input type="file" id="svgFileInput" accept=".svg" style="display: none;" />
                             </div>
                         </div>
                     </div>
@@ -1093,15 +1152,9 @@
                         
                         <!-- Zone d'upload d'images -->
                         <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="images.upload">Uploader une image :</h4>
-                            <input type="file" id="imageFileInput" accept="image/*" style="margin-bottom: 0.75rem;" />
-                            <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
-                                <div style="flex: 1; min-width: 200px;">
-                                    <label for="imageNameInput" data-i18n="images.name">Nom de l'image :</label>
-                                    <input type="text" id="imageNameInput" data-i18n="images.namePlaceholder" placeholder="Entrez un nom pour l'image" />
-                                </div>
-                            <button id="uploadImageButton" type="button" data-i18n="images.uploadButton">UPLOADER L'IMAGE</button>
-                            </div>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="images.upload">Importer une image :</h4>
+                            <button id="importImageButton" type="button" data-i18n="images.importFile" style="background: var(--button-color) !important; color: white !important; border: 1px solid var(--button-color) !important; padding: 0.75rem 1rem !important; border-radius: var(--radius-md) !important; font-size: 0.875rem !important; cursor: pointer !important;">IMPORTER UNE IMAGE</button>
+                            <input type="file" id="imageFileInput" accept="image/*" style="display: none;" />
                         </div>
                         
                         <!-- Liste des images uploadées -->
@@ -1119,15 +1172,9 @@
                         
                         <!-- Zone d'upload de textes -->
                         <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
-                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="texts.upload">Uploader un fichier texte :</h4>
-                            <input type="file" id="textFileInput" accept=".txt" style="margin-bottom: 0.75rem;" />
-                            <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap;">
-                                <div style="flex: 1; min-width: 200px;">
-                                    <label for="textNameInput" data-i18n="texts.name">Nom du texte :</label>
-                                    <input type="text" id="textNameInput" data-i18n="texts.namePlaceholder" placeholder="Entrez un nom pour le texte" />
-                                </div>
-                                <button id="uploadTextButton" type="button" data-i18n="texts.uploadButton">UPLOADER LE TEXTE</button>
-                            </div>
+                            <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="texts.upload">Importer un fichier texte :</h4>
+                            <button id="importTextButton" type="button" data-i18n="texts.importFile" style="background: var(--button-color) !important; color: white !important; border: 1px solid var(--button-color) !important; padding: 0.75rem 1rem !important; border-radius: var(--radius-md) !important; font-size: 0.875rem !important; cursor: pointer !important;">IMPORTER UN FICHIER TEXTE</button>
+                            <input type="file" id="textFileInput" accept=".txt" style="display: none;" />
                         </div>
                         
                         <!-- Liste des textes uploadés -->
@@ -1240,6 +1287,11 @@
                                 <button id="saveLayoutModelButton" type="button" data-i18n="layout.saveModel" style="width: 100%; background: linear-gradient(135deg, var(--success-color), #059669); color: white; border: none; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; cursor: pointer;">SAUVEGARDER LE MODÈLE DE PLANCHE</button>
                             </div>
                             
+                            <div style="margin-bottom: 1rem;">
+                                <button id="importLayoutModelsButton" type="button" data-i18n="layout.importModels" style="width: 100%; background: var(--button-color) !important; color: white !important; border: 1px solid var(--button-color) !important; padding: 0.75rem !important; border-radius: var(--radius-md) !important; font-size: 0.875rem !important; cursor: pointer !important;">IMPORTER DES MODÈLES</button>
+                                <input type="file" id="layoutModelsFileInput" accept=".json" style="display: none;">
+                            </div>
+                            
                             <!-- Export des modèles -->
                         </div>
                         
@@ -1268,7 +1320,7 @@
                         <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
                             <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="sheet.modelSelection">Sélection du modèle de planche :</h4>
                             
-                            <div style="margin-bottom: 1rem;">
+                        <div style="margin-bottom: 1rem;">
                                 <label for="sheetModelSelector" data-i18n="sheet.selectModel">Modèle de planche :</label>
                                 <select id="sheetModelSelector" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
                                     <option value="" data-i18n="sheet.noModel">Aucun modèle sélectionné</option>
