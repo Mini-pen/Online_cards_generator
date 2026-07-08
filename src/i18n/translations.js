@@ -85,9 +85,14 @@ export const translations = {
     'generation.lineNumber': 'Numéro de ligne :',
     'generation.generateButton': 'GÉNÉRER LA CARTE',
     'generation.generateAllButton': 'GÉNÉRER TOUTES LES LIGNES',
+    'generation.deleteAllButton': 'SUPPRIMER TOUTES LES CARTES',
     'generation.generated': 'Cartes générées :',
     'generation.none': 'Aucune carte générée',
     'generation.selectCard': 'Sélectionner une carte',
+    'generation.deleteAllConfirm': 'Supprimer toutes les cartes',
+    'generation.deleteAllMessage': 'Êtes-vous sûr de vouloir supprimer toutes les cartes générées ? Cette action est irréversible.',
+    'generation.deleteAllCancel': 'Annuler',
+    'generation.deleteAllConfirmButton': 'Supprimer toutes',
     
     // Layout
     'layout.title': 'Modèles de Planche',
@@ -260,9 +265,14 @@ export const translations = {
     'generation.lineNumber': 'Line number:',
     'generation.generateButton': 'GENERATE CARD',
     'generation.generateAllButton': 'GENERATE ALL LINES',
+    'generation.deleteAllButton': 'DELETE ALL CARDS',
     'generation.generated': 'Generated cards:',
     'generation.none': 'No generated cards',
     'generation.selectCard': 'Select a card',
+    'generation.deleteAllConfirm': 'Delete all cards',
+    'generation.deleteAllMessage': 'Are you sure you want to delete all generated cards? This action is irreversible.',
+    'generation.deleteAllCancel': 'Cancel',
+    'generation.deleteAllConfirmButton': 'Delete all',
     
     // Layout
     'layout.title': 'Layout Models',
@@ -420,9 +430,14 @@ export const translations = {
     'generation.lineNumber': 'Número de línea:',
     'generation.generateButton': 'GENERAR CARTA',
     'generation.generateAllButton': 'GENERAR TODAS LAS LÍNEAS',
+    'generation.deleteAllButton': 'ELIMINAR TODAS LAS CARTAS',
     'generation.generated': 'Cartas generadas:',
     'generation.none': 'Ninguna carta generada',
     'generation.selectCard': 'Seleccionar una carta',
+    'generation.deleteAllConfirm': 'Eliminar todas las cartas',
+    'generation.deleteAllMessage': '¿Estás seguro de que quieres eliminar todas las cartas generadas? Esta acción es irreversible.',
+    'generation.deleteAllCancel': 'Cancelar',
+    'generation.deleteAllConfirmButton': 'Eliminar todas',
     
     // Layout
     'layout.title': 'Modelos de Diseño',
@@ -576,9 +591,14 @@ export const translations = {
     'generation.lineNumber': 'Zeilennummer :',
     'generation.generateButton': 'KARTE GENERIEREN',
     'generation.generateAllButton': 'ALLE ZEILEN GENERIEREN',
+    'generation.deleteAllButton': 'ALLE KARTEN LÖSCHEN',
     'generation.generated': 'Generierte Karten :',
     'generation.none': 'Keine Karten generiert',
     'generation.selectCard': 'Karte auswählen',
+    'generation.deleteAllConfirm': 'Alle Karten löschen',
+    'generation.deleteAllMessage': 'Sind Sie sicher, dass Sie alle generierten Karten löschen möchten? Diese Aktion ist nicht rückgängig zu machen.',
+    'generation.deleteAllCancel': 'Abbrechen',
+    'generation.deleteAllConfirmButton': 'Alle löschen',
     
     // Layout
     'layout.title': 'Layout-Modelle',
@@ -732,9 +752,14 @@ export const translations = {
     'generation.lineNumber': 'Numero di riga :',
     'generation.generateButton': 'GENERA CARTA',
     'generation.generateAllButton': 'GENERA TUTTE LE RIGHE',
+    'generation.deleteAllButton': 'ELIMINA TUTTE LE CARTE',
     'generation.generated': 'Carte generate :',
     'generation.none': 'Nessuna carta generata',
     'generation.selectCard': 'Seleziona una carta',
+    'generation.deleteAllConfirm': 'Elimina tutte le carte',
+    'generation.deleteAllMessage': 'Sei sicuro di voler eliminare tutte le carte generate? Questa azione è irreversibile.',
+    'generation.deleteAllCancel': 'Annulla',
+    'generation.deleteAllConfirmButton': 'Elimina tutte',
     
     // Layout
     'layout.title': 'Modelli di Layout',
@@ -888,9 +913,14 @@ export const translations = {
     'generation.lineNumber': 'Número da linha :',
     'generation.generateButton': 'GERAR CARTA',
     'generation.generateAllButton': 'GERAR TODAS AS LINHAS',
+    'generation.deleteAllButton': 'EXCLUIR TODOS OS CARTÕES',
     'generation.generated': 'Cartas geradas :',
     'generation.none': 'Nenhuma carta gerada',
     'generation.selectCard': 'Selecionar uma carta',
+    'generation.deleteAllConfirm': 'Excluir todos os cartões',
+    'generation.deleteAllMessage': 'Tem certeza de que deseja excluir todos os cartões gerados? Esta ação é irreversível.',
+    'generation.deleteAllCancel': 'Cancelar',
+    'generation.deleteAllConfirmButton': 'Excluir todos',
     
     // Layout
     'layout.title': 'Modelos de Layout',

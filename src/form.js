@@ -27,6 +27,7 @@ let savedModels = {} // Stockage des modèles en mémoire
 let cardLineInput
 let generateCardButton
 let generateAllLinesButton // Nouveau bouton pour générer toutes les lignes
+let deleteAllCardsButton // Bouton pour supprimer toutes les cartes
 let generatedCardsList
 let modelSelector
 let generatedCards = {} // Stockage des cartes générées en mémoire
@@ -918,6 +919,7 @@ function initCardGeneration() {
   cardLineInput = document.getElementById('cardLineInput')
   generateCardButton = document.getElementById('generateCardButton')
   generateAllLinesButton = document.getElementById('generateAllLinesButton')
+  deleteAllCardsButton = document.getElementById('deleteAllCardsButton')
   
   if (generateCardButton) {
     generateCardButton.addEventListener('click', generateCard)
@@ -931,6 +933,13 @@ function initCardGeneration() {
     console.log('Bouton de génération en masse initialisé')
   } else {
     console.error('generateAllLinesButton not found')
+  }
+  
+  if (deleteAllCardsButton) {
+    deleteAllCardsButton.addEventListener('click', deleteAllCards)
+    console.log('Bouton de suppression de toutes les cartes initialisé')
+  } else {
+    console.error('deleteAllCardsButton not found')
   }
   
   // Charger les cartes générées depuis localStorage
@@ -1558,6 +1567,195 @@ function generateCard() {
     hideProgress()
     showNotification(`Erreur lors de la génération: ${error.message}`, 'error')
   }
+}
+
+// ===== SUPPRESSION DE TOUTES LES CARTES =====
+
+/**
+ * Supprime toutes les cartes générées après confirmation de l'utilisateur
+ */
+function deleteAllCards() {
+  console.log('=== DÉBUT SUPPRESSION DE TOUTES LES CARTES ===')
+  
+  // Vérifier s'il y a des cartes à supprimer
+  const cardsCount = Object.keys(generatedCards).length
+  if (cardsCount === 0) {
+    showNotification('Aucune carte à supprimer', 'info')
+    return
+  }
+  
+  // Afficher la boîte de dialogue de confirmation
+  showDeleteAllCardsDialog().then(function(confirmed) {
+    if (confirmed) {
+      // Supprimer toutes les cartes
+      const deletedCount = Object.keys(generatedCards).length
+      generatedCards = {}
+      
+      // Sauvegarder dans localStorage
+      localStorage.setItem('generatedCards', JSON.stringify(generatedCards))
+      
+      // Mettre à jour l'affichage
+      updateGeneratedCardsList()
+      
+      // Mettre à jour les sélecteurs de planche
+      updateSheetSelectors()
+      
+      // Mettre à jour la date de dernière modification
+      updateLastModifiedDate()
+      
+      // Afficher la notification de succès
+      showNotification(`${deletedCount} carte(s) supprimée(s) avec succès`, 'success')
+      
+      console.log(`${deletedCount} cartes supprimées`)
+    } else {
+      console.log('Suppression annulée par l\'utilisateur')
+    }
+  }).catch(function(error) {
+    console.error('Erreur lors de la suppression:', error)
+    showNotification('Erreur lors de la suppression des cartes', 'error')
+  })
+}
+
+/**
+ * Affiche une boîte de dialogue de confirmation pour la suppression de toutes les cartes
+ * @returns {Promise<boolean>} true si l'utilisateur confirme, false sinon
+ */
+function showDeleteAllCardsDialog() {
+  return new Promise(function(resolve) {
+    // Créer la boîte de dialogue modale
+    const modal = document.createElement('div')
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `
+    
+    const dialog = document.createElement('div')
+    dialog.style.cssText = `
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+    `
+    
+    const title = document.createElement('h3')
+    title.style.cssText = `
+      color: var(--text-primary);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 1rem 0;
+    `
+    title.textContent = i18n.t('generation.deleteAllConfirm')
+    
+    const message = document.createElement('p')
+    message.style.cssText = `
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin: 0 0 2rem 0;
+    `
+    message.textContent = i18n.t('generation.deleteAllMessage')
+    
+    const buttonsContainer = document.createElement('div')
+    buttonsContainer.style.cssText = `
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    `
+    
+    const cancelButton = document.createElement('button')
+    cancelButton.style.cssText = `
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: var(--surface-color);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    `
+    cancelButton.textContent = i18n.t('generation.deleteAllCancel')
+    cancelButton.addEventListener('click', function() {
+      document.body.removeChild(modal)
+      resolve(false)
+    })
+    
+    const confirmButton = document.createElement('button')
+    confirmButton.style.cssText = `
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--danger-color), #dc2626);
+      color: white;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    `
+    confirmButton.textContent = i18n.t('generation.deleteAllConfirmButton')
+    confirmButton.addEventListener('click', function() {
+      document.body.removeChild(modal)
+      resolve(true)
+    })
+    
+    // Ajouter les effets de survol
+    cancelButton.addEventListener('mouseenter', function() {
+      this.style.background = 'var(--hover-color)'
+    })
+    cancelButton.addEventListener('mouseleave', function() {
+      this.style.background = 'var(--surface-color)'
+    })
+    
+    confirmButton.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-1px)'
+      this.style.boxShadow = 'var(--shadow-md)'
+    })
+    confirmButton.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)'
+      this.style.boxShadow = 'none'
+    })
+    
+    // Assembler la boîte de dialogue
+    buttonsContainer.appendChild(cancelButton)
+    buttonsContainer.appendChild(confirmButton)
+    
+    dialog.appendChild(title)
+    dialog.appendChild(message)
+    dialog.appendChild(buttonsContainer)
+    
+    modal.appendChild(dialog)
+    document.body.appendChild(modal)
+    
+    // Fermer avec Escape
+    const handleKeyDown = function(event) {
+      if (event.key === 'Escape') {
+        document.body.removeChild(modal)
+        document.removeEventListener('keydown', handleKeyDown)
+        resolve(false)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    
+    // Fermer en cliquant sur le fond
+    modal.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        document.body.removeChild(modal)
+        document.removeEventListener('keydown', handleKeyDown)
+        resolve(false)
+      }
+    })
+  })
 }
 
 // ===== FONCTIONS D'EXPORT SVG =====
