@@ -1,0 +1,13 @@
+.git
+node_modules
+build
+doc
+test
+*.code-workspace
+cursor_log*
+todo.org
+esdoc.json
+Dockerfile
+.dockerignore
+.gitignore
+README.md

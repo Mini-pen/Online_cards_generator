@@ -3,6 +3,13 @@
     <head lang="fr">
         <meta charset="UTF-8">
         <title>générateur</title>
+        <script>
+          // Served behind a reverse-proxy sub-path (e.g. /cards): force a trailing
+          // slash so the relative "build/…" script URL resolves under the sub-path.
+          if (!location.pathname.endsWith('/')) {
+            location.replace(location.pathname + '/' + location.search + location.hash);
+          }
+        </script>
   	    <script
 	          src="https://code.jquery.com/jquery-3.1.0.slim.min.js"
 	          integrity="sha256-cRpWjoSOw5KcyIOaZNo4i6fZ9tKPhYYb6i5T9RSVJG8="
